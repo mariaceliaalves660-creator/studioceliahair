@@ -24,8 +24,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [services, setServices] = useState<Service[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [students, setStudents] = useState<Student[]>([]); // MOVED: Declared here
   console.log("DataContext: Initial courses state:", courses); // NEW LOG
-  setStudents(data.students);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -50,7 +50,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProducts(data.products);
       setCourses(data.courses);
       console.log("DataContext: Courses after refreshData:", data.courses); // NEW LOG
-      setStudents(data.students);
+      setStudents(data.students); // Now setStudents is defined
       setStaff(data.staff);
       setClients(data.clients);
       setAppointments(data.appointments);
