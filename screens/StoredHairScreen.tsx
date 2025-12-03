@@ -14,7 +14,6 @@ export const StoredHairScreen: React.FC = () => {
   const [storedHairWeight, setStoredHairWeight] = useState('');
   const [storedHairWeightUnit, setStoredHairWeightUnit] = useState<UnitType>('g');
   const [storedHairLength, setStoredHairLength] = useState('');
-  // REMOVIDO: const [storedHairCircumference, setStoredHairCircumference] = useState(''); // Removido o estado
   const [storedHairNotes, setStoredHairNotes] = useState('');
   const [editingStoredHair, setEditingStoredHair] = useState<StoredHair | null>(null);
   const [newlyRegisteredStoredHair, setNewlyRegisteredStoredHair] = useState<StoredHair | null>(null); // To show success screen
@@ -38,7 +37,6 @@ export const StoredHairScreen: React.FC = () => {
 
   const handleSaveStoredHair = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validação ajustada para remover storedHairCircumference
     if (!selectedClientForStoredHair || !storedHairDate || !storedHairWeight || !storedHairLength) {
       alert("Por favor, preencha todos os campos obrigatórios.");
       return;
@@ -62,7 +60,6 @@ export const StoredHairScreen: React.FC = () => {
       weight: parseFloat(storedHairWeight),
       weightUnit: storedHairWeightUnit,
       length: parseInt(storedHairLength),
-      // REMOVIDO: circumference: parseInt(storedHairCircumference), // Removido do objeto de dados
       status: 'stored',
       notes: storedHairNotes || undefined,
       deliveryCode: generatedCode, // Save the generated code
@@ -86,7 +83,6 @@ export const StoredHairScreen: React.FC = () => {
     setStoredHairWeight(hair.weight.toString());
     setStoredHairWeightUnit(hair.weightUnit);
     setStoredHairLength(hair.length.toString());
-    // REMOVIDO: setStoredHairCircumference(hair.circumference.toString()); // Removido da inicialização
     setStoredHairNotes(hair.notes || '');
   };
 
@@ -98,7 +94,6 @@ export const StoredHairScreen: React.FC = () => {
     setStoredHairWeight('');
     setStoredHairWeightUnit('g');
     setStoredHairLength('');
-    // REMOVIDO: setStoredHairCircumference(''); // Removido do reset
     setStoredHairNotes('');
     setNewlyRegisteredStoredHair(null); // Clear success state
   };
@@ -250,21 +245,6 @@ export const StoredHairScreen: React.FC = () => {
                       onChange={e => setStoredHairLength(e.target.value)} 
                   />
               </div>
-              {/* REMOVIDO: Campo de Circunferência */}
-              {/*
-              <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Circunferência (cm)</label>
-                  <input 
-                      required 
-                      type="number" 
-                      step="1"
-                      placeholder="Circunferência (ex: 10)" 
-                      className="w-full p-3 border rounded-lg" 
-                      value={storedHairCircumference} 
-                      onChange={e => setStoredHairCircumference(e.target.value)} 
-                  />
-              </div>
-              */}
           </div>
           <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Observações (Opcional)</label>
@@ -305,10 +285,10 @@ export const StoredHairScreen: React.FC = () => {
                               <div className="flex flex-wrap gap-1 mt-2">
                                   <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full flex items-center"><Scale size={10} className="mr-1"/> {hair.weight} {hair.weightUnit}</span>
                                   <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full flex items-center"><Ruler size={10} className="mr-1"/> {hair.length} cm</span>
-                                  {/* REMOVIDO: Exibição da Circunferência */}
-                                  {/* <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full flex items-center"><Tag size={10} className="mr-1"/> {hair.circumference} cm</span> */}
                               </div>
                               {hair.notes && <p className="text-xs text-gray-400 mt-2 italic">Obs: {hair.notes}</p>}
+                              {/* REMOVIDO: Exibição do Código de Entrega para o Administrador */}
+                              {/*
                               {hair.status === 'stored' && hair.deliveryCode && (
                                   <div className="mt-3 bg-gray-100 p-2 rounded-lg text-xs border border-gray-200 flex items-center justify-between">
                                       <span className="font-bold text-gray-700">CÓDIGO: {hair.deliveryCode}</span>
@@ -321,6 +301,7 @@ export const StoredHairScreen: React.FC = () => {
                                       </button>
                                   </div>
                               )}
+                              */}
                           </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">

@@ -147,8 +147,10 @@ export const ClientsScreen: React.FC = () => {
                 <div className="text-xs text-gray-600 space-y-1">
                     <p>Deixado em: {new Date(hair.dateStored).toLocaleDateString('pt-BR')}</p>
                     {hair.dateDelivered && <p>Entregue em: {new Date(hair.dateDelivered).toLocaleDateString('pt-BR')}</p>}
-                    <p>{hair.weight} {hair.weightUnit} • {hair.length} cm • {hair.circumference} cm</p>
+                    <p>{hair.weight} {hair.weightUnit} • {hair.length} cm</p>
                     {hair.notes && <p className="italic">Obs: {hair.notes}</p>}
+                    {/* REMOVIDO: Exibição do Código de Entrega para o Administrador */}
+                    {/*
                     {hair.status === 'stored' && hair.deliveryCode && (
                         <div className="mt-2 bg-gray-100 p-2 rounded-lg text-xs border border-gray-200 flex items-center justify-between">
                             <span className="font-bold text-gray-700">CÓDIGO: {hair.deliveryCode}</span>
@@ -161,6 +163,7 @@ export const ClientsScreen: React.FC = () => {
                             </button>
                         </div>
                     )}
+                    */}
                 </div>
             </div>
         );
@@ -494,7 +497,7 @@ export const ClientsScreen: React.FC = () => {
                     </div>
 
                     <div className="mt-8 border-t pt-4">
-                          <h4 className="font-bold text-gray-600 text-sm uppercase mb-4 flex items-center"><Ticket size={16} className="mr-2"/> Meus Resgates</h4>
+                          <h4 className="font-bold text-gray-600 text-sm uppercase mb-4 flex items-center"><Tag size={16} className="mr-2"/> Meus Resgates</h4>
                           <div className="space-y-2">
                               {pointRedemptions.filter(r => r.clientId === selectedClient.id).length === 0 ? (
                                   <p className="text-xs text-gray-400 text-center">Você ainda não comprou prêmios.</p>
