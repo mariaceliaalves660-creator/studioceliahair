@@ -19,6 +19,7 @@ export const ProductsScreen: React.FC = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPass, setLoginPass] = useState('');
+  const [loginError, setLoginError] = useState(''); // NEW: State for login error message
   const [showMyShopModal, setShowMyShopModal] = useState(false);
   const [redemptionSuccess, setRedemptionSuccess] = useState<string | null>(null);
   
@@ -254,6 +255,23 @@ export const ProductsScreen: React.FC = () => {
 
   const nextImage = (images: string[]) => {
       setSelectedImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1);
+  };
+
+  // NEW: handleClientLogin function
+  const handleClientLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(''); // Clear previous errors
+
+    const client = clients.find(c => c.email === loginEmail && c.password === loginPass);
+
+    if (client) {
+      setLoggedInClient(client);
+      setShowLoginModal(false);
+      setLoginEmail('');
+      setLoginPass('');
+    } else {
+      setLoginError('Email ou senha incorretos.');
+    }
   };
 
   return (
@@ -919,6 +937,11 @@ export const ProductsScreen: React.FC = () => {
                           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Senha</label>
                           <input required type="password" className="w-full p-3 border rounded-xl" value={loginPass} onChange={e => setLoginPass(e.target.value)} />
                       </div>
+                      {loginError && (
+                        <div className="text-red-500 text-sm font-bold text-center bg-red-50 p-2 rounded-lg">
+                          {loginError}
+                        </div>
+                      )}
                       <button className="w-full bg-rose-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-rose-700">Entrar</button>
                   </form>
                   <p className="text-xs text-center mt-4 text-gray-400">Não tem conta? Fale com nosso gerente.</p>
