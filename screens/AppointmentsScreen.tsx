@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Scissors, Edit2, Save, X, Users, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Scissors, Edit2, Save, X, Users, ChevronDown, CheckCircle, DollarSign, Trash2, Repeat } from 'lucide-react';
 import { Appointment } from '../types';
+import { QuickSaleModal } from '../components/QuickSaleModal'; // Importar o novo modal
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 export const AppointmentsScreen: React.FC = () => {
-  const { appointments, clients, services, staff, addAppointment, updateAppointment } = useData();
+  const { appointments, clients, services, staff, addAppointment, updateAppointment, removeAppointment } = useData();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [showForm, setShowForm] = useState(false);
@@ -16,13 +17,17 @@ export const AppointmentsScreen: React.FC = () => {
 
   // Form State (Used for both Create and Edit)
   const [selectedClientId, setSelectedClientId] = useState('');
-  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]); // MODIFIED: Now an array
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]); 
   const [selectedDateStr, setSelectedDateStr] = useState(''); // YYYY-MM-DD
   const [selectedTime, setSelectedTime] = useState('');
   const [notes, setNotes] = useState('');
-  const [showStaffDropdown, setShowStaffDropdown] = useState(false); // State for staff dropdown visibility
-  const [showServiceDropdown, setShowServiceDropdown] = useState(false); // NEW: State for service dropdown visibility
+  const [showStaffDropdown, setShowStaffDropdown] = useState(false);
+  const [showServiceDropdown, setShowServiceDropdown] = useState(false);
+
+  // Quick Sale Modal State
+  const [showQuickSaleModal, setShowQuickSaleModal] = useState(false);
+  const [appointmentForSale, setAppointmentForSale] = useState<Appointment | null>(null);
 
   // Calendar Logic
   const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -42,7 +47,6 @@ export const AppointmentsScreen: React.FC = () => {
   const handleDateClick = (day: number) => {
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     setSelectedDate(newDate);
-    // When clicking a date, we set the default date for new appointment
     setSelectedDateStr(newDate.toISOString().split('T')[0]);
     setShowForm(false);
     setEditingAppointment(null);
@@ -51,11 +55,10 @@ export const AppointmentsScreen: React.FC = () => {
   const openNewForm = () => {
     setEditingAppointment(null);
     setSelectedClientId('');
-    setSelectedServiceIds([]); // Reset to empty array
+    setSelectedServiceIds([]);
     setSelectedStaffIds([]); 
     setSelectedTime('');
     setNotes('');
-    // Default to currently selected date on calendar
     if (selectedDate) {
         setSelectedDateStr(selectedDate.toISOString().split('T')[0]);
     }
@@ -65,7 +68,7 @@ export const AppointmentsScreen: React.FC = () => {
   const openEditForm = (apt: Appointment) => {
     setEditingAppointment(apt);
     setSelectedClientId(apt.clientId);
-    setSelectedServiceIds(apt.serviceIds); // Load array of service IDs
+    setSelectedServiceIds(apt.serviceIds);
     setSelectedStaffIds(apt.staffId); 
     setSelectedDateStr(apt.date);
     setSelectedTime(apt.time);
@@ -78,7 +81,7 @@ export const AppointmentsScreen: React.FC = () => {
       if (prev.includes(staffId)) {
         return prev.filter(id => id !== staffId);
       } else {
-        if (prev.length < 3) { // Limit to 3 staff members
+        if (prev.length < 3) {
           return [...prev, staffId];
         } else {
           alert("Você pode selecionar no máximo 3 profissionais.");
@@ -88,12 +91,12 @@ export const AppointmentsScreen: React.FC = () => {
     });
   };
 
-  const toggleServiceSelection = (serviceId: string) => { // NEW: Service selection handler
+  const toggleServiceSelection = (serviceId: string) => {
     setSelectedServiceIds(prev => {
       if (prev.includes(serviceId)) {
         return prev.filter(id => id !== serviceId);
       } else {
-        if (prev.length < 5) { // Limit to 5 services
+        if (prev.length < 5) {
           return [...prev, serviceId];
         } else {
           alert("Você pode selecionar no máximo 5 serviços.");
@@ -114,13 +117,12 @@ export const AppointmentsScreen: React.FC = () => {
     if (!client) return;
 
     if (editingAppointment) {
-      // Update existing
       const updatedApt: Appointment = {
         ...editingAppointment,
         clientId: client.id,
         clientName: client.name,
         clientPhone: client.phone,
-        serviceIds: selectedServiceIds, // Save array of service IDs
+        serviceIds: selectedServiceIds,
         staffId: selectedStaffIds, 
         date: selectedDateStr,
         time: selectedTime,
@@ -128,13 +130,12 @@ export const AppointmentsScreen: React.FC = () => {
       };
       updateAppointment(updatedApt);
     } else {
-      // Create new
       const newAppt: Appointment = {
         id: `apt-${Date.now()}`,
         clientId: client.id,
         clientName: client.name,
         clientPhone: client.phone,
-        serviceIds: selectedServiceIds, // Save array of service IDs
+        serviceIds: selectedServiceIds,
         staffId: selectedStaffIds, 
         date: selectedDateStr,
         time: selectedTime,
@@ -150,6 +151,34 @@ export const AppointmentsScreen: React.FC = () => {
 
   const displayDateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : '';
   const dayAppointments = appointments.filter(a => a.date === displayDateStr).sort((a,b) => a.time.localeCompare(b.time));
+
+  // --- NEW HANDLERS FOR APPOINTMENT ACTIONS ---
+  const handleReschedule = (apt: Appointment) => {
+    openEditForm(apt);
+  };
+
+  const handleDeleteAppointment = (aptId: string) => {
+    if (confirm("Tem certeza que deseja excluir este agendamento?")) {
+      removeAppointment(aptId);
+      alert("Agendamento excluído com sucesso!");
+    }
+  };
+
+  const handleConfirmService = (apt: Appointment) => {
+    setAppointmentForSale(apt);
+    setShowQuickSaleModal(true);
+  };
+
+  const handleSaleComplete = (appointmentId: string) => {
+    // Update appointment status to 'completed' after sale
+    const apt = appointments.find(a => a.id === appointmentId);
+    if (apt) {
+      updateAppointment({ ...apt, status: 'completed' });
+    }
+    setShowQuickSaleModal(false);
+    setAppointmentForSale(null);
+    alert("Atendimento confirmado e venda registrada!");
+  };
 
   return (
     <div className="p-4 pb-20 relative">
@@ -214,33 +243,79 @@ export const AppointmentsScreen: React.FC = () => {
                 </p>
               ) : (
                 dayAppointments.map(apt => {
-                  const assignedServices = services.filter(s => apt.serviceIds.includes(s.id)); // Filter multiple services
+                  const assignedServices = services.filter(s => apt.serviceIds.includes(s.id));
                   const assignedStaff = staff.filter(s => apt.staffId.includes(s.id)); 
+                  
+                  let statusColor = 'bg-blue-100 text-blue-700';
+                  if (apt.status === 'completed') statusColor = 'bg-green-100 text-green-700';
+                  if (apt.status === 'cancelled') statusColor = 'bg-red-100 text-red-700';
+
                   return (
-                    <div key={apt.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border-l-4 border-blue-500 hover:bg-blue-50 transition-colors group">
-                      <div className="flex items-center flex-1">
-                        <div className="mr-4 text-center min-w-[50px]">
-                            <div className="font-bold text-blue-900 text-lg">{apt.time}</div>
+                    <div key={apt.id} className={`flex flex-col p-3 rounded-lg border-l-4 ${apt.status === 'completed' ? 'border-green-500' : apt.status === 'cancelled' ? 'border-red-500' : 'border-blue-500'} bg-gray-50 hover:bg-blue-50 transition-colors group`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center flex-1">
+                          <div className="mr-4 text-center min-w-[50px]">
+                              <div className="font-bold text-blue-900 text-lg">{apt.time}</div>
+                          </div>
+                          <div>
+                              <div className="font-bold text-gray-800">{apt.clientName}</div>
+                              <div className={`text-xs font-medium inline-block px-1.5 py-0.5 rounded mt-1 ${statusColor}`}>
+                                {apt.status === 'scheduled' ? 'Agendado' : apt.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                              </div>
+                              {apt.notes && <div className="text-xs text-gray-400 mt-1 italic">"{apt.notes}"</div>}
+                          </div>
                         </div>
-                        <div>
-                            <div className="font-bold text-gray-800">{apt.clientName}</div>
-                            <div className="text-xs text-blue-600 font-medium bg-blue-100 inline-block px-1.5 py-0.5 rounded mt-1">
-                            {assignedServices.length > 0 ? assignedServices.map(s => s.name).join(', ') : 'Nenhum serviço'}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1 flex items-center flex-wrap gap-x-2">
-                            <Users size={10} className="mr-1" /> 
-                            {assignedStaff.length > 0 ? assignedStaff.map(s => s.name).join(', ') : 'Nenhum profissional'}
-                            </div>
-                            {apt.notes && <div className="text-xs text-gray-400 mt-1 italic">"{apt.notes}"</div>}
+                        <div className="flex items-center gap-2">
+                            {apt.status === 'scheduled' && (
+                                <button 
+                                    onClick={() => handleConfirmService(apt)}
+                                    className="p-2 text-green-600 hover:bg-green-100 rounded-full transition-colors"
+                                    title="Confirmar Atendimento"
+                                >
+                                    <CheckCircle size={18} />
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => openEditForm(apt)}
+                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded-full transition-colors"
+                                title="Editar Agendamento"
+                            >
+                                <Edit2 size={16} />
+                            </button>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => openEditForm(apt)}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded-full transition-colors"
-                        title="Editar Agendamento"
-                      >
-                         <Edit2 size={16} />
-                      </button>
+                      
+                      {/* Services and Staff Display */}
+                      <div className="flex flex-wrap gap-1 text-xs text-gray-600 mt-2 pt-2 border-t border-gray-100">
+                          <span className="font-bold text-gray-500">Serviços:</span>
+                          {assignedServices.length > 0 ? assignedServices.map(s => (
+                              <span key={s.id} className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{s.name}</span>
+                          )) : <span className="text-gray-400 italic">Nenhum</span>}
+                          <span className="font-bold text-gray-500 ml-3">Profissionais:</span>
+                          {assignedStaff.length > 0 ? assignedStaff.map(s => (
+                              <span key={s.id} className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">{s.name}</span>
+                          )) : <span className="text-gray-400 italic">Nenhum</span>}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                          {apt.status === 'scheduled' && (
+                              <button 
+                                  onClick={() => handleReschedule(apt)}
+                                  className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-200 flex items-center justify-center"
+                              >
+                                  <Repeat size={16} className="mr-2"/> Reagendar
+                              </button>
+                          )}
+                          {apt.status !== 'cancelled' && (
+                              <button 
+                                  onClick={() => handleDeleteAppointment(apt.id)}
+                                  className="flex-1 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-bold hover:bg-red-100 flex items-center justify-center"
+                              >
+                                  <Trash2 size={16} className="mr-2"/> Excluir
+                              </button>
+                          )}
+                      </div>
                     </div>
                   );
                 })
@@ -392,6 +467,15 @@ export const AppointmentsScreen: React.FC = () => {
                </form>
             </div>
          </div>
+      )}
+
+      {/* Quick Sale Modal */}
+      {showQuickSaleModal && appointmentForSale && (
+        <QuickSaleModal 
+          appointment={appointmentForSale}
+          onClose={() => setShowQuickSaleModal(false)}
+          onSaleComplete={handleSaleComplete}
+        />
       )}
     </div>
   );
