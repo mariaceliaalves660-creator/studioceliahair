@@ -149,7 +149,7 @@ const AppContent: React.FC = () => {
             
             <button 
               onClick={() => { setViewMode('client'); setShowModeSelector(false); setCurrentScreen('home'); }}
-              className="w-full bg-rose-500 text-white py-4 rounded-xl font-bold text-lg mb-4 hover:bg-rose-600 transition shadow-lg flex items-center justify-center"
+              className="w-full bg-rose-600 text-white py-4 rounded-xl font-bold text-lg mb-4 hover:bg-rose-600 transition shadow-lg flex items-center justify-center"
             >
               <ShoppingBag size={18} className="mr-2" /> Produtos / Loja
             </button>
@@ -243,9 +243,10 @@ const AppContent: React.FC = () => {
                 </button>
               )}
               <div className="flex flex-col">
-                 <h1 className="font-serif font-bold text-lg leading-tight">Célia Hair</h1>
+                 <h1 className="font-serif font-bold text-lg leading-tight">LOJA & STUDIO</h1>
+                 <span className="text-xs font-medium leading-none -mt-1">Célia Hair</span>
                  {viewMode === 'admin' && currentAdmin && (
-                   <span className="text-[10px] uppercase opacity-70 tracking-wider">
+                   <span className="text-[10px] uppercase opacity-70 tracking-wider mt-1">
                      {currentAdmin.role === 'manager' ? 'Gerente' : 'Admin Geral'}
                    </span>
                  )}
