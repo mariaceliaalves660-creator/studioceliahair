@@ -44,12 +44,15 @@ export const HomeScreen: React.FC<HomeProps> = ({ onNavigate }) => {
            <Package className="mr-2" /> Catálogo de Produtos e Cursos
         </button>
 
+        {/* REMOVIDO: Botão "Testar Simulador IA" */}
+        {/*
         <button 
           onClick={() => onNavigate('ai-studio')}
           className="w-full bg-white text-fuchsia-600 border border-fuchsia-200 py-4 rounded-2xl font-bold text-lg shadow-sm hover:bg-fuchsia-50 transition flex items-center justify-center"
         >
            <Wand2 className="mr-2" /> Testar Simulador IA
         </button>
+        */}
       </div>
     );
   }
