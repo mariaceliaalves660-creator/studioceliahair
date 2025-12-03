@@ -331,6 +331,15 @@ export const AppointmentsScreen: React.FC = () => {
                                         {s.name}
                                     </label>
                                 ))}
+                                <div className="p-2 border-t border-gray-100">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setShowServiceDropdown(false)} 
+                                        className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-bold hover:bg-gray-200"
+                                    >
+                                        Fechar
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
