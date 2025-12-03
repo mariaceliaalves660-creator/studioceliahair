@@ -175,7 +175,7 @@ export const HairBusinessScreen: React.FC = () => {
     setNewProductIsOnline(true);
   };
 
-  const handleConvertQuoteToProduct = () => {
+  const handleConvertQuoteToProduct = async () => { // Made async
     if (!quoteToConvert || !newProductPrice || !newProductStock) {
         alert("Preencha o valor de venda e estoque.");
         return;
@@ -192,7 +192,7 @@ export const HairBusinessScreen: React.FC = () => {
     if (quoteToConvert.photos?.side) images.push(quoteToConvert.photos.side);
     if (quoteToConvert.photos?.back) images.push(quoteToConvert.photos.back);
 
-    addProduct({
+    await addProduct({ // Await the product creation
       id: `p-hair-${Date.now()}`,
       name: productName,
       category: description, 
@@ -206,13 +206,14 @@ export const HairBusinessScreen: React.FC = () => {
       hairQuoteId: quoteToConvert.id
     });
 
+    // 2. UPDATE QUOTE STATUS -> 'product_generated'
     const updatedQuote: HairQuote = {
         ...quoteToConvert,
-        status: 'stock' // Keep as stock, product is now created
+        status: 'product_generated' // NEW STATUS
     };
-    updateHairQuote(updatedQuote);
+    await updateHairQuote(updatedQuote); // Await the quote update
 
-    alert("Cabelo adicionado ao estoque e marcado como 'Aguardando Venda'!");
+    alert("Cabelo adicionado ao estoque e marcado como 'Produto Gerado'!");
     setQuoteToConvert(null);
     setNewProductPrice('');
   };
@@ -511,7 +512,7 @@ export const HairBusinessScreen: React.FC = () => {
                     {hairQuotes
                     .filter(q => {
                         if (hairFilter === 'awaiting_approval') return q.status === 'purchased';
-                        if (hairFilter === 'purchased') return q.status === 'stock' || q.status === 'sold';
+                        if (hairFilter === 'purchased') return q.status === 'stock' || q.status === 'product_generated' || q.status === 'sold'; // Include product_generated
                         if (hairFilter === 'quoted') return q.status === 'quoted';
                         return true;
                     })
@@ -525,10 +526,11 @@ export const HairBusinessScreen: React.FC = () => {
                         
                         if (quote.status === 'purchased') { statusColor = 'bg-orange-100 text-orange-700'; statusText = 'Aguardando Aprovação'; }
                         if (quote.status === 'stock') { statusColor = 'bg-green-100 text-green-700'; statusText = 'Aprovado / Em Estoque'; }
+                        if (quote.status === 'product_generated') { statusColor = 'bg-blue-100 text-blue-700'; statusText = 'Produto Gerado'; } // NEW status text
                         if (quote.status === 'sold') { statusColor = 'bg-gray-800 text-white'; statusText = 'Cabelo Vendido'; }
 
                         return (
-                        <div key={quote.id} className={`p-5 border rounded-xl flex flex-col md:flex-row justify-between items-start gap-4 transition hover:shadow-md ${quote.status === 'purchased' ? 'bg-orange-50 border-orange-200 shadow-sm' : quote.status === 'stock' || quote.status === 'sold' ? 'bg-white border-green-200 shadow-sm' : 'bg-gray-50 border-gray-200 opacity-90'}`}>
+                        <div key={quote.id} className={`p-5 border rounded-xl flex flex-col md:flex-row justify-between items-start gap-4 transition hover:shadow-md ${quote.status === 'purchased' ? 'bg-orange-50 border-orange-200 shadow-sm' : quote.status === 'stock' || quote.status === 'product_generated' || quote.status === 'sold' ? 'bg-white border-green-200 shadow-sm' : 'bg-gray-50 border-gray-200 opacity-90'}`}>
                             <div className="flex-1 w-full">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex flex-col">
@@ -593,10 +595,11 @@ export const HairBusinessScreen: React.FC = () => {
                                      </button>
                                    )}
 
+                                   {/* Only show 'Edit' and 'Generate Product' if status is 'stock' */}
                                    {quote.status === 'stock' && (
                                      <>
                                         <button 
-                                            onClick={() => openEditQuote(quote)} // NEW: Edit button
+                                            onClick={() => openEditQuote(quote)}
                                             className="mt-2 text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center hover:bg-purple-700 transition"
                                         >
                                             <Edit2 size={14} className="mr-1"/> Editar
@@ -610,6 +613,13 @@ export const HairBusinessScreen: React.FC = () => {
                                      </>
                                    )}
                                    
+                                   {/* Show 'Product Generated' or 'Sold' if applicable */}
+                                   {quote.status === 'product_generated' && (
+                                      <div className="mt-2 text-xs text-gray-600 font-bold flex items-center bg-gray-100 px-2 py-1 rounded border border-gray-200">
+                                         <PackageCheck size={14} className="mr-1"/> Produto Gerado
+                                      </div>
+                                   )}
+
                                    {quote.status === 'sold' && (
                                       <div className="mt-2 text-xs text-gray-600 font-bold flex items-center bg-gray-100 px-2 py-1 rounded border border-gray-200">
                                          <ShoppingBag size={14} className="mr-1"/> Venda Finalizada

@@ -250,7 +250,7 @@ export interface HairQuote {
   quality: string;
   totalValue: number;
   color: string;
-  status: 'quoted' | 'purchased' | 'stock' | 'sold'; // Status tracking including lifecycle
+  status: 'quoted' | 'purchased' | 'stock' | 'product_generated' | 'sold'; // Status tracking including lifecycle
   
   // NEW: Weight/Gramagem fields
   weight?: number;
