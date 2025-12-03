@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Box, Scale, Ruler, Tag, Copy, CheckCircle } from 'lucide-react';
-import { useData } from '../context/DataContext';
+import { useData } from '../../context/DataContext'; // Caminho corrigido
 import { Client, StoredHair } from '../types';
 
 interface ClientStoredHairProps {
