@@ -1,3 +1,4 @@
+"use client";
 
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
@@ -5,7 +6,7 @@ import { ShoppingBag, Clock, CheckCircle, MapPin, Phone, Truck, XCircle, Chevron
 import { Order } from '../types';
 
 export const OrdersScreen: React.FC = () => {
-  const { orders, updateOrder } = useData();
+  const { orders, updateOrder, currentAdmin } = useData(); // Obter currentAdmin
   const [filter, setFilter] = useState<'pending' | 'completed' | 'all'>('pending');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
@@ -16,7 +17,10 @@ export const OrdersScreen: React.FC = () => {
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const handleStatusChange = (order: Order, newStatus: Order['status']) => {
-    updateOrder({ ...order, status: newStatus });
+    // Passar o ID e nome do administrador logado ao atualizar o status para 'completed'
+    const adminId = currentAdmin?.id;
+    const adminName = currentAdmin?.name;
+    updateOrder({ ...order, status: newStatus }, adminId, adminName);
   };
 
   return (

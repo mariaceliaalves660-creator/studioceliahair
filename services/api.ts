@@ -137,7 +137,7 @@ export const api = {
       saveDB(db);
       return order;
     },
-    update: async (order: Order): Promise<Order> => {
+    update: async (order: Order, approvedByAdminId?: string, approvedByAdminName?: string): Promise<Order> => {
       const db = getDB();
       
       // Check previous state to handle stock logic only once
@@ -153,8 +153,8 @@ export const api = {
             customerCpf: order.customerCpf,
             total: order.total,
             paymentMethod: 'pix',
-            createdBy: 'system-online',
-            createdByName: 'Venda Online',
+            createdBy: approvedByAdminId || 'system-online', // Usar ID do admin se fornecido
+            createdByName: approvedByAdminName || 'Venda Online', // Usar nome do admin se fornecido
             items: order.items.map(i => {
                 // Find origin
                 const prod = db.products.find(p => p.id === i.productId);
@@ -173,7 +173,8 @@ export const api = {
                     type: type,
                     staffId: 'system',
                     staffName: 'Online',
-                    origin: origin
+                    origin: origin,
+                    category: prod?.category || course?.title || 'Online' // Use product/course category
                 };
                 return saleItem;
             })
@@ -203,7 +204,7 @@ export const api = {
       }
 
       // Handle Cancellation (Return Stock)
-      if (existingOrder && order.status === 'cancelled' && existingOrder.status === 'completed') {
+      if (existingOrder && order.status === 'cancelled' && existingOrder.status !== 'completed') {
           order.items.forEach(item => {
               const pIdx = db.products.findIndex(p => p.id === item.productId);
               if (pIdx > -1) {

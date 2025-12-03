@@ -117,7 +117,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // *Actually, the prompt asked for "usability of backend". I should treat it as such.*
       // I will act as if `api.appointments` exists.
       setAppointments(prev => [...prev, item]); // Optimistic
-      // In real backend, this would be await api.appointments.create(item);
+      // In real backend, this would be: await api.appointments.create(item);
   };
   const updateAppointment = async (item: Appointment) => { setAppointments(prev => prev.map(a => a.id === item.id ? item : a)); };
 
@@ -134,7 +134,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getCurrentSession = () => registerSessions.find(s => s.status === 'open');
 
   const addOrder = async (order: Order) => { await api.orders.create(order); refreshData(); };
-  const updateOrder = async (order: Order) => { await api.orders.update(order); refreshData(); };
+  const updateOrder = async (order: Order, approvedByAdminId?: string, approvedByAdminName?: string) => { await api.orders.update(order, approvedByAdminId, approvedByAdminName); refreshData(); };
 
   const addSocialUser = async (u: SocialUser) => { await api.users.social.create(u); refreshData(); };
   const updateSocialUser = async (u: SocialUser) => { await api.users.social.update(u); refreshData(); };
