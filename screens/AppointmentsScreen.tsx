@@ -1,7 +1,8 @@
+"use client";
 
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Scissors, Edit2, Save, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Scissors, Edit2, Save, X, Users } from 'lucide-react';
 import { Appointment } from '../types';
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -16,10 +17,11 @@ export const AppointmentsScreen: React.FC = () => {
   // Form State (Used for both Create and Edit)
   const [selectedClientId, setSelectedClientId] = useState('');
   const [selectedService, setSelectedService] = useState('');
-  const [selectedStaff, setSelectedStaff] = useState('');
+  const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]); // MODIFIED: Now an array
   const [selectedDateStr, setSelectedDateStr] = useState(''); // YYYY-MM-DD
   const [selectedTime, setSelectedTime] = useState('');
   const [notes, setNotes] = useState('');
+  const [showStaffDropdown, setShowStaffDropdown] = useState(false); // State for dropdown visibility
 
   // Calendar Logic
   const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -49,7 +51,7 @@ export const AppointmentsScreen: React.FC = () => {
     setEditingAppointment(null);
     setSelectedClientId('');
     setSelectedService('');
-    setSelectedStaff('');
+    setSelectedStaffIds([]); // Reset to empty array
     setSelectedTime('');
     setNotes('');
     // Default to currently selected date on calendar
@@ -63,16 +65,34 @@ export const AppointmentsScreen: React.FC = () => {
     setEditingAppointment(apt);
     setSelectedClientId(apt.clientId);
     setSelectedService(apt.serviceId);
-    setSelectedStaff(apt.staffId);
+    setSelectedStaffIds(apt.staffId); // Load array of staff IDs
     setSelectedDateStr(apt.date);
     setSelectedTime(apt.time);
     setNotes(apt.notes || '');
     setShowForm(true);
   };
 
+  const toggleStaffSelection = (staffId: string) => {
+    setSelectedStaffIds(prev => {
+      if (prev.includes(staffId)) {
+        return prev.filter(id => id !== staffId);
+      } else {
+        if (prev.length < 3) { // Limit to 3 staff members
+          return [...prev, staffId];
+        } else {
+          alert("Você pode selecionar no máximo 3 profissionais.");
+          return prev;
+        }
+      }
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDateStr || !selectedService || !selectedStaff || !selectedTime || !selectedClientId) return;
+    if (!selectedDateStr || !selectedService || selectedStaffIds.length === 0 || !selectedTime || !selectedClientId) {
+        alert("Por favor, preencha todos os campos obrigatórios, incluindo pelo menos um profissional.");
+        return;
+    }
 
     const client = clients.find(c => c.id === selectedClientId);
     if (!client) return;
@@ -85,7 +105,7 @@ export const AppointmentsScreen: React.FC = () => {
         clientName: client.name,
         clientPhone: client.phone,
         serviceId: selectedService,
-        staffId: selectedStaff,
+        staffId: selectedStaffIds, // Save array of staff IDs
         date: selectedDateStr,
         time: selectedTime,
         notes,
@@ -99,7 +119,7 @@ export const AppointmentsScreen: React.FC = () => {
         clientName: client.name,
         clientPhone: client.phone,
         serviceId: selectedService,
-        staffId: selectedStaff,
+        staffId: selectedStaffIds, // Save array of staff IDs
         date: selectedDateStr,
         time: selectedTime,
         notes,
@@ -179,7 +199,7 @@ export const AppointmentsScreen: React.FC = () => {
               ) : (
                 dayAppointments.map(apt => {
                   const srv = services.find(s => s.id === apt.serviceId);
-                  const stf = staff.find(s => s.id === apt.staffId);
+                  const assignedStaff = staff.filter(s => apt.staffId.includes(s.id)); // Filter multiple staff
                   return (
                     <div key={apt.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border-l-4 border-blue-500 hover:bg-blue-50 transition-colors group">
                       <div className="flex items-center flex-1">
@@ -191,8 +211,9 @@ export const AppointmentsScreen: React.FC = () => {
                             <div className="text-xs text-blue-600 font-medium bg-blue-100 inline-block px-1.5 py-0.5 rounded mt-1">
                             {srv?.name}
                             </div>
-                            <div className="text-xs text-gray-500 mt-1 flex items-center">
-                            <User size={10} className="mr-1" /> {stf?.name}
+                            <div className="text-xs text-gray-500 mt-1 flex items-center flex-wrap gap-x-2">
+                            <Users size={10} className="mr-1" /> 
+                            {assignedStaff.length > 0 ? assignedStaff.map(s => s.name).join(', ') : 'Nenhum profissional'}
                             </div>
                             {apt.notes && <div className="text-xs text-gray-400 mt-1 italic">"{apt.notes}"</div>}
                         </div>
@@ -279,17 +300,35 @@ export const AppointmentsScreen: React.FC = () => {
                         {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                     </div>
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Profissional</label>
-                        <select 
-                        required 
-                        className="w-full p-3 rounded-lg border bg-white focus:border-blue-500 outline-none" 
-                        value={selectedStaff} 
-                        onChange={e => setSelectedStaff(e.target.value)}
+                    {/* Staff Multi-Select */}
+                    <div className="relative">
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Profissional(is) (Máx. 3)</label>
+                        <button 
+                            type="button"
+                            onClick={() => setShowStaffDropdown(!showStaffDropdown)}
+                            className="w-full p-3 rounded-lg border bg-white text-left flex items-center justify-between focus:border-blue-500 outline-none"
                         >
-                        <option value="">Selecione...</option>
-                        {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                        </select>
+                            {selectedStaffIds.length > 0 
+                                ? staff.filter(s => selectedStaffIds.includes(s.id)).map(s => s.name).join(', ')
+                                : 'Selecione...'
+                            }
+                            <ChevronDown size={16} className="text-gray-400" />
+                        </button>
+                        {showStaffDropdown && (
+                            <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                                {staff.map(s => (
+                                    <label key={s.id} className="flex items-center p-3 hover:bg-blue-50 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedStaffIds.includes(s.id)}
+                                            onChange={() => toggleStaffSelection(s.id)}
+                                            className="mr-2 rounded text-blue-600 focus:ring-blue-500"
+                                        />
+                                        {s.name}
+                                    </label>
+                                ))}
+                            </div>
+                        )}
                     </div>
                   </div>
 

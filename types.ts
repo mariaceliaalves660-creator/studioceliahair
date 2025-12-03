@@ -97,7 +97,7 @@ export interface Appointment {
   clientName: string; // Denormalized for display ease
   clientPhone: string;
   serviceId: string;
-  staffId: string;
+  staffId: string[]; // MODIFIED: Now an array of strings
   date: string; // ISO Date string YYYY-MM-DD
   time: string; // HH:mm
   notes?: string;
