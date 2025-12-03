@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Scissors, Edit2, Save, X, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Scissors, Edit2, Save, X, Users, ChevronDown } from 'lucide-react';
 import { Appointment } from '../types';
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
