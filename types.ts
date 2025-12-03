@@ -252,6 +252,10 @@ export interface HairQuote {
   color: string;
   status: 'quoted' | 'purchased' | 'stock' | 'sold'; // Status tracking including lifecycle
   
+  // NEW: Weight/Gramagem fields
+  weight?: number;
+  weightUnit?: UnitType;
+
   // Purchase Details (filled if purchased)
   sellerName?: string;
   sellerCpf?: string;

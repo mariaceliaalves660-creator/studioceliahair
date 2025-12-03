@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../context/DataContext';
-import { Scissors, Calendar, MapPin, Filter, TrendingUp, Clock, User, Download, X, Settings, Users, Edit2, Trash2, Save, CheckSquare, Square, DollarSign, PackagePlus, PieChart, ArrowUpRight, ArrowDownRight, Globe, Scale, Copy, PackageCheck, ShoppingBag, BarChart3, Trophy, Medal, Star, CheckCircle } from 'lucide-react';
+import { Scissors, Calendar, MapPin, Filter, TrendingUp, Clock, User, Download, X, Settings, Users, Edit2, Trash2, Save, CheckSquare, Square, DollarSign, PackagePlus, PieChart, ArrowUpRight, ArrowDownRight, Globe, Scale, Copy, PackageCheck, ShoppingBag, BarChart3, Trophy, Medal, Star, CheckCircle, Camera, Ruler, Activity, Palette, Award, AlertTriangle } from 'lucide-react';
 import { SocialUser, HairOption, HairCalcConfig, HairQuote, UnitType } from '../types';
+import { BRAZIL_STATES, AGE_GROUPS } from '../constants';
 
 export const HairBusinessScreen: React.FC = () => {
   const { hairQuotes, socialUsers, addSocialUser, updateSocialUser, removeSocialUser, hairConfig, updateHairConfig, addProduct, sales, expenses, updateHairQuote, products, approveHairQuote } = useData();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'finance' | 'evaluators' | 'rules'>('dashboard');
 
   // Dashboard State
-  const [hairFilter, setHairFilter] = useState<'all' | 'purchased' | 'quoted' | 'awaiting_approval'>('awaiting_approval'); // NEW: Default to awaiting approval
+  const [hairFilter, setHairFilter] = useState<'all' | 'purchased' | 'quoted' | 'awaiting_approval'>('awaiting_approval');
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
   
   // Product Conversion State
@@ -28,13 +29,23 @@ export const HairBusinessScreen: React.FC = () => {
   const [evalPass, setEvalPass] = useState('');
 
   // --- Rules Editor State ---
-  const [selectedRuleContext, setSelectedRuleContext] = useState<string>('global'); // 'global' or userId
+  const [selectedRuleContext, setSelectedRuleContext] = useState<string>('global');
   const [localConfig, setLocalConfig] = useState<HairCalcConfig>(hairConfig);
   const [hasChanges, setHasChanges] = useState(false);
 
   // --- Goal & Ranking State ---
   const [goalAmount, setGoalAmount] = useState(hairConfig.monthlyGoal?.toString() || '');
   const [goalReward, setGoalReward] = useState(hairConfig.monthlyReward || '');
+
+  // --- Edit Hair Quote Modal State ---
+  const [showEditQuoteModal, setShowEditQuoteModal] = useState(false);
+  const [editingQuoteData, setEditingQuoteData] = useState<HairQuote | null>(null);
+  const [editQuoteError, setEditQuoteError] = useState('');
+
+  // Refs for photo uploads in Edit Quote Modal
+  const editFrontRef = useRef<HTMLInputElement>(null);
+  const editSideRef = useRef<HTMLInputElement>(null);
+  const editBackRef = useRef<HTMLInputElement>(null);
 
   // Sync state when entering the screen OR changing the rule context
   useEffect(() => {
@@ -66,7 +77,6 @@ export const HairBusinessScreen: React.FC = () => {
 
   let hairStats = { day: 0, week: 0, month: 0, year: 0, countDay: 0, countWeek: 0, countMonth: 0, countYear: 0 };
   
-  // NEW: Only count 'stock' or 'sold' for purchase stats
   hairQuotes.filter(q => q.status === 'stock' || q.status === 'sold').forEach(q => { 
     const d = parseDate(q.date);
     const val = q.totalValue;
@@ -83,13 +93,10 @@ export const HairBusinessScreen: React.FC = () => {
     balance: 0
   };
 
-  // 1. Expenses (Money OUT to buy hair)
   financialStats.expenses = expenses
     .filter(e => e.businessUnit === 'hair_business')
     .reduce((acc, e) => acc + e.amount, 0);
 
-  // 2. Income (Money IN from selling hair)
-  // New logic: Sum items where origin is explicitly 'hair_business'
   const hairSalesItems: any[] = [];
   
   sales.forEach(sale => {
@@ -103,7 +110,6 @@ export const HairBusinessScreen: React.FC = () => {
                 value: val
             });
         } else {
-             // Fallback for older data or direct product lookup if origin missing
              const originalProduct = products.find(p => p.id === item.id);
              if (originalProduct && originalProduct.origin === 'hair_business') {
                  const val = item.price * item.quantity;
@@ -163,9 +169,9 @@ export const HairBusinessScreen: React.FC = () => {
   // --- Product Conversion Handler ---
   const openConversionModal = (quote: HairQuote) => {
     setQuoteToConvert(quote);
-    setNewProductPrice('');
-    setNewProductUnit('un');
-    setNewProductStock('1');
+    setNewProductPrice(quote.totalValue.toFixed(2)); // Pre-fill with purchase price
+    setNewProductUnit(quote.weightUnit || 'un'); // Pre-fill with quote weight unit
+    setNewProductStock(quote.weight?.toString() || '1'); // Pre-fill with quote weight
     setNewProductIsOnline(true);
   };
 
@@ -175,21 +181,17 @@ export const HairBusinessScreen: React.FC = () => {
         return;
     }
 
-    // Name Logic: Name (First) + CPF (3) + ### + State + Age
     const firstName = (quoteToConvert.sellerName || 'Vendedor').split(' ')[0];
     const cpfPart = (quoteToConvert.sellerCpf || '000').replace(/\D/g, '').substring(0, 3);
     const productName = `${firstName} ${cpfPart}### ${quoteToConvert.sellerState || ''} ${quoteToConvert.sellerAgeGroup || ''}`;
     
-    // Category/Description Logic
     const description = `Cabelo Humano: ${quoteToConvert.hairType} ${quoteToConvert.color}, ${quoteToConvert.length}cm, ${quoteToConvert.circumference}cm, ${quoteToConvert.condition}`;
 
-    // Collect images
     const images: string[] = [];
     if (quoteToConvert.photos?.front) images.push(quoteToConvert.photos.front);
     if (quoteToConvert.photos?.side) images.push(quoteToConvert.photos.side);
     if (quoteToConvert.photos?.back) images.push(quoteToConvert.photos.back);
 
-    // 1. CREATE PRODUCT
     addProduct({
       id: `p-hair-${Date.now()}`,
       name: productName,
@@ -201,13 +203,12 @@ export const HairBusinessScreen: React.FC = () => {
       images: images, 
       origin: 'hair_business',
       isOnline: newProductIsOnline,
-      hairQuoteId: quoteToConvert.id // Link to original quote
+      hairQuoteId: quoteToConvert.id
     });
 
-    // 2. UPDATE QUOTE STATUS -> 'stock'
     const updatedQuote: HairQuote = {
         ...quoteToConvert,
-        status: 'stock'
+        status: 'stock' // Keep as stock, product is now created
     };
     updateHairQuote(updatedQuote);
 
@@ -216,7 +217,6 @@ export const HairBusinessScreen: React.FC = () => {
     setNewProductPrice('');
   };
 
-  // NEW: Handle Admin Approval
   const handleApproveQuote = (quoteId: string) => {
       if (confirm("Tem certeza que deseja APROVAR esta compra? Ela será adicionada ao estoque e contará para a meta do avaliador.")) {
           approveHairQuote(quoteId);
@@ -234,11 +234,9 @@ export const HairBusinessScreen: React.FC = () => {
   ) => {
     const newConfig = { ...localConfig };
 
-    // Handle Global Fields
     if (section === 'maxPriceLimit' || section === 'blockPurchaseMessage') {
         (newConfig as any)[section] = value;
     } else {
-        // Handle Array Fields
         const array = newConfig[section] as HairOption[];
         const index = array.findIndex(i => i.id === itemId);
         if (index > -1) {
@@ -321,14 +319,11 @@ export const HairBusinessScreen: React.FC = () => {
   const soldItemsProfit = hairQuotes
     .filter(q => q.status === 'sold')
     .map(quote => {
-        // Find the product linked to this quote
         const product = products.find(p => p.hairQuoteId === quote.id);
-        // Find the sale item that matches this product (to get sell price)
         let soldPrice = 0;
         let soldDate = '';
 
         if (product) {
-            // Search in sales
             for (const sale of sales) {
                 const item = sale.items.find(i => i.id === product.id);
                 if (item) {
@@ -345,7 +340,7 @@ export const HairBusinessScreen: React.FC = () => {
             buyPrice: quote.totalValue,
             sellPrice: soldPrice,
             profit: soldPrice - quote.totalValue,
-            date: soldDate || quote.date // fallback
+            date: soldDate || quote.date
         };
     })
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -354,8 +349,6 @@ export const HairBusinessScreen: React.FC = () => {
 
   // --- EVALUATOR RANKING LOGIC ---
   const evaluatorRanking = socialUsers.map(user => {
-      // Calculate total purchased value this month
-      // NEW: Only count 'stock' or 'sold' for the monthly total
       const monthlyTotal = hairQuotes
         .filter(q => q.evaluatorId === user.id && (q.status === 'stock' || q.status === 'sold') && isMonth(new Date(q.date)))
         .reduce((acc, q) => acc + q.totalValue, 0);
@@ -369,6 +362,84 @@ export const HairBusinessScreen: React.FC = () => {
           progress
       };
   }).sort((a,b) => b.monthlyTotal - a.monthlyTotal);
+
+  // --- Edit Quote Modal Handlers ---
+  const openEditQuote = (quote: HairQuote) => {
+    setEditingQuoteData({ ...quote }); // Create a copy to edit
+    setShowEditQuoteModal(true);
+    setEditQuoteError('');
+  };
+
+  const handleEditQuoteChange = (field: keyof HairQuote, value: any) => {
+    setEditingQuoteData(prev => prev ? { ...prev, [field]: value } : null);
+  };
+
+  const handleEditPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, photoKey: 'front' | 'side' | 'back') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const resizedImage = await resizeImage(file); // Assuming resizeImage is available
+        setEditingQuoteData(prev => prev ? { ...prev, photos: { ...prev.photos, [photoKey]: resizedImage } } : null);
+      } catch (err) {
+        console.error("Error resizing image", err);
+        const reader = new FileReader();
+        reader.onloadend = () => setEditingQuoteData(prev => prev ? { ...prev, photos: { ...prev.photos, [photoKey]: reader.result as string } } : null);
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
+  const handleSaveEditedQuote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingQuoteData) return;
+
+    // Basic validation
+    if (!editingQuoteData.hairType || !editingQuoteData.length || !editingQuoteData.circumference || !editingQuoteData.condition || !editingQuoteData.quality || !editingQuoteData.color || editingQuoteData.totalValue <= 0) {
+        setEditQuoteError("Por favor, preencha todos os campos obrigatórios e o valor total.");
+        return;
+    }
+    if (editingQuoteData.weight && editingQuoteData.weight <= 0) {
+        setEditQuoteError("A gramagem deve ser maior que zero.");
+        return;
+    }
+
+    await updateHairQuote(editingQuoteData);
+    setShowEditQuoteModal(false);
+    setEditingQuoteData(null);
+    alert("Cotação de cabelo atualizada com sucesso!");
+  };
+
+  const resizeImage = (file: File, maxWidth: number = 800): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          } else {
+             reject(new Error("Canvas context error"));
+          }
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
 
   return (
     <div className="p-4 pb-20 relative">
@@ -440,20 +511,19 @@ export const HairBusinessScreen: React.FC = () => {
                     {hairQuotes
                     .filter(q => {
                         if (hairFilter === 'awaiting_approval') return q.status === 'purchased';
-                        if (hairFilter === 'purchased') return q.status === 'stock' || q.status === 'sold'; // Approved and in stock/sold
+                        if (hairFilter === 'purchased') return q.status === 'stock' || q.status === 'sold';
                         if (hairFilter === 'quoted') return q.status === 'quoted';
-                        return true; // All
+                        return true;
                     })
                     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map(quote => {
                         const evaluator = getEvaluatorDetails(quote.evaluatorId);
                         const dateObj = new Date(quote.date);
                         
-                        // Status Badge Config
                         let statusColor = 'bg-yellow-100 text-yellow-700';
                         let statusText = 'Avaliado';
                         
-                        if (quote.status === 'purchased') { statusColor = 'bg-orange-100 text-orange-700'; statusText = 'Aguardando Aprovação'; } // NEW status
+                        if (quote.status === 'purchased') { statusColor = 'bg-orange-100 text-orange-700'; statusText = 'Aguardando Aprovação'; }
                         if (quote.status === 'stock') { statusColor = 'bg-green-100 text-green-700'; statusText = 'Aprovado / Em Estoque'; }
                         if (quote.status === 'sold') { statusColor = 'bg-gray-800 text-white'; statusText = 'Cabelo Vendido'; }
 
@@ -477,6 +547,7 @@ export const HairBusinessScreen: React.FC = () => {
                                 </div>
                                 <div className="text-xs text-gray-500 mt-2 p-2 border border-gray-200 rounded inline-block bg-white">
                                     {quote.hairType} • {quote.length}cm • {quote.circumference}cm • {quote.condition} • {quote.color}
+                                    {quote.weight && <span className="ml-2">• {quote.weight} {quote.weightUnit}</span>}
                                 </div>
                                 {quote.status !== 'quoted' && (
                                     <div className="mt-3 bg-green-50 p-3 rounded-lg text-xs border border-green-100 grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -485,12 +556,12 @@ export const HairBusinessScreen: React.FC = () => {
                                     <div><strong>Pix:</strong> {quote.sellerPix}</div>
                                     </div>
                                 )}
-                                {quote.approvalCode && ( // NEW: Display approval code
+                                {quote.approvalCode && (
                                     <div className="mt-3 bg-gray-100 p-3 rounded-lg text-xs border border-gray-200 flex items-center justify-between">
                                         <span className="font-bold text-gray-700">CÓDIGO: {quote.approvalCode}</span>
                                         <button 
                                             onClick={() => navigator.clipboard.writeText(quote.approvalCode || '')}
-                                            className="ml-2 p-1 rounded-full hover:bg-gray-200 text-gray-600"
+                                            className="ml-3 p-1 rounded-full hover:bg-gray-200 text-gray-600"
                                             title="Copiar código"
                                         >
                                             <Copy size={14}/>
@@ -513,24 +584,30 @@ export const HairBusinessScreen: React.FC = () => {
                                      </div>
                                    )}
                                    
-                                   {/* Only show 'Approve Purchase' if status is 'purchased' */}
                                    {quote.status === 'purchased' && (
                                      <button 
-                                         onClick={() => handleApproveQuote(quote.id)} // NEW: Approve button
+                                         onClick={() => handleApproveQuote(quote.id)}
                                          className="mt-2 text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center hover:bg-green-700 transition"
                                      >
                                          <CheckCircle size={14} className="mr-1"/> Aprovar Compra
                                      </button>
                                    )}
 
-                                   {/* Only show 'Generate Product' if it's Approved (stock) */}
                                    {quote.status === 'stock' && (
-                                     <button 
-                                         onClick={() => openConversionModal(quote)}
-                                         className="mt-2 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center hover:bg-blue-700 transition"
-                                     >
-                                         <PackagePlus size={14} className="mr-1"/> Gerar Produto
-                                     </button>
+                                     <>
+                                        <button 
+                                            onClick={() => openEditQuote(quote)} // NEW: Edit button
+                                            className="mt-2 text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center hover:bg-purple-700 transition"
+                                        >
+                                            <Edit2 size={14} className="mr-1"/> Editar
+                                        </button>
+                                        <button 
+                                            onClick={() => openConversionModal(quote)}
+                                            className="mt-2 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center hover:bg-blue-700 transition"
+                                        >
+                                            <PackagePlus size={14} className="mr-1"/> Gerar Produto
+                                        </button>
+                                     </>
                                    )}
                                    
                                    {quote.status === 'sold' && (
@@ -996,6 +1073,171 @@ export const HairBusinessScreen: React.FC = () => {
                         <Save size={18} className="mr-2"/> Criar Produto
                     </button>
                 </div>
+            </div>
+        </div>
+      )}
+
+      {/* EDIT HAIR QUOTE MODAL */}
+      {showEditQuoteModal && editingQuoteData && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 animate-fade-in flex flex-col max-h-[90vh]">
+                <div className="bg-purple-600 p-4 -mx-6 -mt-6 mb-4 flex justify-between items-center text-white">
+                    <h3 className="font-bold text-lg flex items-center"><Edit2 className="mr-2"/> Editar Cotação de Cabelo</h3>
+                    <button onClick={() => setShowEditQuoteModal(false)} className="hover:bg-purple-500 rounded-full p-1"><X size={24}/></button>
+                </div>
+                
+                <form onSubmit={handleSaveEditedQuote} className="flex-1 overflow-y-auto pr-2 space-y-4">
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm text-gray-700">
+                        <div className="font-bold">Avaliador: {editingQuoteData.evaluatorName}</div>
+                        <div className="text-xs text-gray-500">Data: {new Date(editingQuoteData.date).toLocaleDateString()}</div>
+                    </div>
+
+                    {/* Hair Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo de Cabelo</label>
+                            <select 
+                                required
+                                className="w-full p-3 border rounded-lg bg-white"
+                                value={editingQuoteData.hairType}
+                                onChange={e => handleEditQuoteChange('hairType', e.target.value)}
+                            >
+                                {hairConfig.textures.filter(t => t.enabled).map(t => <option key={t.id} value={t.value}>{t.label}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Cor</label>
+                            <select 
+                                required
+                                className="w-full p-3 border rounded-lg bg-white"
+                                value={editingQuoteData.color}
+                                onChange={e => handleEditQuoteChange('color', e.target.value)}
+                            >
+                                {hairConfig.colors.filter(c => c.enabled).map(c => <option key={c.id} value={c.value}>{c.label}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Condição / Química</label>
+                            <select 
+                                required
+                                className="w-full p-3 border rounded-lg bg-white"
+                                value={editingQuoteData.condition}
+                                onChange={e => handleEditQuoteChange('condition', e.target.value)}
+                            >
+                                {hairConfig.conditions.filter(c => c.enabled).map(c => <option key={c.id} value={c.value}>{c.label}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qualidade</label>
+                            <select 
+                                required
+                                className="w-full p-3 border rounded-lg bg-white"
+                                value={editingQuoteData.quality}
+                                onChange={e => handleEditQuoteChange('quality', e.target.value)}
+                            >
+                                {hairConfig.qualities.filter(q => q.enabled).map(q => <option key={q.id} value={q.value}>{q.label}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Comprimento (cm)</label>
+                            <input 
+                                required 
+                                type="number" 
+                                step="1"
+                                className="w-full p-3 border rounded-lg"
+                                value={editingQuoteData.length}
+                                onChange={e => handleEditQuoteChange('length', parseInt(e.target.value))}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Espessura (cm)</label>
+                            <input 
+                                required 
+                                type="number" 
+                                step="1"
+                                className="w-full p-3 border rounded-lg"
+                                value={editingQuoteData.circumference}
+                                onChange={e => handleEditQuoteChange('circumference', parseInt(e.target.value))}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Gramagem */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Gramagem (Peso)</label>
+                            <input 
+                                type="number" 
+                                step="0.01"
+                                className="w-full p-3 border rounded-lg"
+                                value={editingQuoteData.weight || ''}
+                                onChange={e => handleEditQuoteChange('weight', parseFloat(e.target.value))}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Unidade de Peso</label>
+                            <select 
+                                className="w-full p-3 border rounded-lg bg-white"
+                                value={editingQuoteData.weightUnit || 'g'}
+                                onChange={e => handleEditQuoteChange('weightUnit', e.target.value as UnitType)}
+                            >
+                                <option value="g">Gramas (g)</option>
+                                <option value="kg">Quilo (kg)</option>
+                                <option value="un">Unidade (un)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Total Value */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Valor Total (R$)</label>
+                        <input 
+                            required 
+                            type="number" 
+                            step="0.01"
+                            className="w-full p-3 border rounded-lg font-bold text-lg"
+                            value={editingQuoteData.totalValue}
+                            onChange={e => handleEditQuoteChange('totalValue', parseFloat(e.target.value))}
+                        />
+                    </div>
+
+                    {/* Photos */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Fotos do Cabelo</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {['front', 'side', 'back'].map((key) => {
+                                const imgUrl = editingQuoteData.photos?.[key as keyof typeof editingQuoteData.photos];
+                                const ref = key === 'front' ? editFrontRef : key === 'side' ? editSideRef : editBackRef;
+                                return (
+                                    <div key={key} onClick={() => ref.current?.click()} className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 overflow-hidden relative">
+                                        {imgUrl ? <img src={imgUrl} className="w-full h-full object-cover"/> : <Camera className="text-gray-400"/>}
+                                        <span className="text-[10px] font-bold text-gray-500 absolute bottom-1 bg-white/80 px-1 rounded">{key.toUpperCase()}</span>
+                                        <input type="file" ref={ref} className="hidden" accept="image/*" onChange={e => handleEditPhotoUpload(e, key as 'front' | 'side' | 'back')} />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {editQuoteError && (
+                        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-bold flex items-center">
+                            <AlertTriangle size={18} className="mr-2"/> {editQuoteError}
+                        </div>
+                    )}
+
+                    <div className="flex gap-3 pt-4">
+                        <button type="button" onClick={() => setShowEditQuoteModal(false)} className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-lg hover:bg-gray-200">Cancelar</button>
+                        <button type="submit" className="flex-1 py-3 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 shadow-md flex items-center justify-center">
+                            <Save size={18} className="mr-2"/> Salvar Alterações
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
       )}
