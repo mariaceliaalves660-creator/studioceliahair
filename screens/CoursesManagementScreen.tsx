@@ -78,17 +78,41 @@ export const CoursesManagementScreen: React.FC = () => {
     setView('list');
   };
 
-  const handleSaveCourseInfo = (e: React.FormEvent) => {
+  const handleSaveCourseInfo = async (e: React.FormEvent) => { // Make it async
     e.preventDefault();
-    const courseData = { title: crsTitle, workload: crsWorkload, format: crsFormat, certificate: crsCertificate, materials: crsMaterials, price: parseFloat(crsPrice), imageUrl: crsImage, active: true, maxStudents: crsLimit ? parseInt(crsLimit) : undefined };
-    if (editingCourse) {
-      updateCourse({ ...editingCourse, ...courseData });
-      alert('Informações do curso atualizadas!');
-    } else {
-      addCourse({ id: `crs-${Date.now()}`, ...courseData, modules: [] });
-      alert('Curso criado com sucesso!');
+    try {
+      const price = parseFloat(crsPrice);
+      if (isNaN(price)) {
+        alert("Por favor, insira um valor numérico válido para o preço.");
+        return;
+      }
+
+      const courseData = {
+        title: crsTitle,
+        workload: crsWorkload,
+        format: crsFormat,
+        certificate: crsCertificate,
+        materials: crsMaterials,
+        price: price,
+        imageUrl: crsImage,
+        active: true,
+        maxStudents: crsLimit ? parseInt(crsLimit) : undefined
+      };
+
+      console.log("Course data to save:", courseData); // Debugging log
+
+      if (editingCourse) {
+        await updateCourse({ ...editingCourse, ...courseData }); // Await update
+        alert('Informações do curso atualizadas!');
+      } else {
+        await addCourse({ id: `crs-${Date.now()}`, ...courseData, modules: [] }); // Await add
+        alert('Curso criado com sucesso!');
+      }
+      resetCourseForm();
+    } catch (error) {
+      console.error("Error saving course:", error);
+      alert("Ocorreu um erro ao salvar o curso. Tente novamente.");
     }
-    resetCourseForm();
   };
 
   const startEditCourseInfo = (c: Course) => {
@@ -272,7 +296,7 @@ export const CoursesManagementScreen: React.FC = () => {
                     date: new Date().toISOString(),
                     clientId: clientId,
                     clientName: stdName,
-                    customerCpf: stdCpf, // Use stdCpf if available
+                    // customerCpf: stdCpf, // Use stdCpf if available - stdCpf is not defined here
                     total: totalValue,
                     paymentMethod: 'dinheiro', // Default assumption or add selector
                     createdBy: currentAdmin?.id,
