@@ -12,7 +12,7 @@ export const ManagerScreen: React.FC = () => {
     staff, addStaff, updateStaff, removeStaff,
     clients, addClient, updateClient, removeClient,
     sales, expenses, registerSessions, 
-    adminUsers, addAdminUser, removeAdminUser,
+    adminUsers, addAdminUser, updateAdminUser, removeAdminUser,
     loyaltyRewards, addLoyaltyReward, removeLoyaltyReward,
     orders
   } = useData();
@@ -69,6 +69,7 @@ export const ManagerScreen: React.FC = () => {
   const [rewLimit, setRewLimit] = useState(''); // NEW
 
   // Access (Admin)
+  const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null); // NEW: State for editing admin
   const [admName, setAdmName] = useState('');
   const [admEmail, setAdmEmail] = useState('');
   const [admPass, setAdmPass] = useState('');
@@ -190,7 +191,33 @@ export const ManagerScreen: React.FC = () => {
   };
 
   // Admin / Access
-  const handleAddAdmin = (e: React.FormEvent) => { e.preventDefault(); const newAdmin: AdminUser = { id: `adm-${Date.now()}`, name: admName, email: admEmail, password: admPass, role: 'manager', permissions: admPermissions }; addAdminUser(newAdmin); setAdmName(''); setAdmEmail(''); setAdmPass(''); setAdmPermissions(['cashier', 'orders', 'sales']); alert('Sub-Gerente adicionado com sucesso!'); };
+  const handleSaveAdmin = (e: React.FormEvent) => { // Renamed from handleAddAdmin
+    e.preventDefault();
+    if (editingAdmin) {
+      updateAdminUser({ ...editingAdmin, name: admName, email: admEmail, password: admPass, permissions: admPermissions });
+      setEditingAdmin(null);
+      alert('Acesso de administrador atualizado!');
+    } else {
+      const newAdmin: AdminUser = { id: `adm-${Date.now()}`, name: admName, email: admEmail, password: admPass, role: 'manager', permissions: admPermissions };
+      addAdminUser(newAdmin);
+      alert('Sub-Gerente adicionado com sucesso!');
+    }
+    setAdmName(''); setAdmEmail(''); setAdmPass(''); setAdmPermissions(['cashier', 'orders', 'sales']);
+  };
+
+  const startEditAdmin = (admin: AdminUser) => {
+    setEditingAdmin(admin);
+    setAdmName(admin.name);
+    setAdmEmail(admin.email);
+    setAdmPass(admin.password);
+    setAdmPermissions(admin.permissions || []);
+  };
+
+  const cancelEditAdmin = () => {
+    setEditingAdmin(null);
+    setAdmName(''); setAdmEmail(''); setAdmPass(''); setAdmPermissions(['cashier', 'orders', 'sales']);
+  };
+
   const togglePermission = (id: string) => { setAdmPermissions(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]); };
 
   return (
@@ -569,11 +596,12 @@ export const ManagerScreen: React.FC = () => {
            <div className="animate-fade-in">
                <h3 className="font-bold text-gray-700 mb-4 flex items-center"><Key size={20} className="mr-2 text-gray-500"/> Sub-Gerentes / Acessos</h3>
                
-               <form onSubmit={handleAddAdmin} className="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-8 space-y-4">
+               <form onSubmit={handleSaveAdmin} className={`bg-gray-50 p-6 rounded-xl border mb-8 space-y-4 transition-colors ${editingAdmin ? 'border-purple-300 ring-2 ring-purple-100' : 'border-gray-200'}`}>
+                  {editingAdmin && <div className="text-xs font-bold text-purple-600 uppercase tracking-widest mb-2 flex items-center"><Edit2 size={12} className="mr-1"/> Editando: {editingAdmin.name}</div>}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                      <input required placeholder="Nome" className="w-full p-2 border rounded" value={admName} onChange={e => setAdmName(e.target.value)} />
                      <input required placeholder="Email de Login" className="w-full p-2 border rounded" value={admEmail} onChange={e => setAdmEmail(e.target.value)} />
-                     <input required placeholder="Senha" className="w-full p-2 border rounded" value={admPass} onChange={e => setAdmPass(e.target.value)} />
+                     <input required placeholder="Senha" className="w-full p-2 border rounded" type="password" value={admPass} onChange={e => setAdmPass(e.target.value)} />
                   </div>
                   
                   <div className="bg-white p-4 rounded border border-gray-200">
@@ -598,9 +626,12 @@ export const ManagerScreen: React.FC = () => {
                      </div>
                   </div>
 
-                  <button className="w-full bg-gray-800 text-white py-2 rounded font-bold hover:bg-gray-900 flex justify-center items-center">
-                      <UserPlus size={18} className="mr-2"/> Criar Acesso
-                  </button>
+                  <div className="flex gap-2 justify-end">
+                    {editingAdmin && <button type="button" onClick={cancelEditAdmin} className="bg-gray-200 text-gray-700 px-4 py-2 rounded font-bold">Cancelar</button>}
+                    <button className="bg-gray-800 text-white py-2 rounded font-bold hover:bg-gray-900 flex justify-center items-center">
+                        {editingAdmin ? <><Save size={18} className="mr-2"/> Salvar Alterações</> : <><UserPlus size={18} className="mr-2"/> Criar Acesso</>}
+                    </button>
+                  </div>
                </form>
 
                <div className="space-y-3">
@@ -615,7 +646,10 @@ export const ManagerScreen: React.FC = () => {
                                  ))}
                               </div>
                           </div>
-                          <button onClick={() => { if(confirm('Remover acesso?')) removeAdminUser(u.id); }} className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded"><Trash2 size={18}/></button>
+                          <div className="flex gap-2">
+                             <button onClick={() => startEditAdmin(u)} className="text-gray-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded" title="Editar"><Edit2 size={18}/></button>
+                             <button onClick={() => { if(confirm('Remover acesso?')) removeAdminUser(u.id); }} className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded" title="Excluir"><Trash2 size={18}/></button>
+                          </div>
                       </div>
                    ))}
                    {adminUsers.filter(u => u.role !== 'superadmin').length === 0 && <p className="text-gray-400 text-center">Nenhum sub-gerente cadastrado.</p>}
