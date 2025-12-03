@@ -18,9 +18,11 @@ const DB_KEY = 'celia_app_data';
 // This simulates a database connection. In a real app, these would be SQL/NoSQL queries.
 const getDB = (): AppData => {
   const loaded = localStorage.getItem(DB_KEY);
+  let data: AppData;
+
   if (!loaded) {
     // Seed Database
-    const initialData: AppData = {
+    data = {
       services: INITIAL_SERVICES,
       products: INITIAL_PRODUCTS,
       courses: INITIAL_COURSES,
@@ -39,12 +41,36 @@ const getDB = (): AppData => {
       adminUsers: INITIAL_ADMIN_USERS,
       loyaltyRewards: INITIAL_LOYALTY_REWARDS,
       pointRedemptions: INITIAL_POINT_REDEMPTIONS,
-      storedHair: INITIAL_STORED_HAIR // NEW
+      storedHair: INITIAL_STORED_HAIR
     };
-    localStorage.setItem(DB_KEY, JSON.stringify(initialData));
-    return initialData;
+    localStorage.setItem(DB_KEY, JSON.stringify(data));
+  } else {
+    const parsedData = JSON.parse(loaded);
+    // Merge loaded data with initial data to ensure all properties exist
+    // This handles cases where new properties are added to AppData after initial save
+    data = {
+      services: parsedData.services || INITIAL_SERVICES,
+      products: parsedData.products || INITIAL_PRODUCTS,
+      courses: parsedData.courses || INITIAL_COURSES,
+      students: parsedData.students || INITIAL_STUDENTS,
+      staff: parsedData.staff || INITIAL_STAFF,
+      clients: parsedData.clients || INITIAL_CLIENTS,
+      appointments: parsedData.appointments || INITIAL_APPOINTMENTS,
+      sales: parsedData.sales || INITIAL_SALES,
+      expenses: parsedData.expenses || INITIAL_EXPENSES,
+      staffPayments: parsedData.staffPayments || INITIAL_STAFF_PAYMENTS,
+      registerSessions: parsedData.registerSessions || INITIAL_REGISTER_SESSIONS,
+      orders: parsedData.orders || INITIAL_ORDERS,
+      socialUsers: parsedData.socialUsers || INITIAL_SOCIAL_USERS,
+      hairQuotes: parsedData.hairQuotes || INITIAL_HAIR_QUOTES,
+      hairConfig: parsedData.hairConfig || INITIAL_HAIR_CONFIG,
+      adminUsers: parsedData.adminUsers || INITIAL_ADMIN_USERS,
+      loyaltyRewards: parsedData.loyaltyRewards || INITIAL_LOYALTY_REWARDS,
+      pointRedemptions: parsedData.pointRedemptions || INITIAL_POINT_REDEMPTIONS,
+      storedHair: parsedData.storedHair || INITIAL_STORED_HAIR
+    };
   }
-  return JSON.parse(loaded);
+  return data;
 };
 
 const saveDB = (data: AppData) => {
