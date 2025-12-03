@@ -1,0 +1,7 @@
+{
+  "name": "Loja & Studio Célia Hair",
+  "description": "Um sistema completo de gestão para salão de beleza com agendamentos, vendas, estoque, fluxo de caixa e um estúdio de IA para simulação de visual.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
