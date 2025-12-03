@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../context/DataContext';
-import { ShieldCheck, TrendingUp, DollarSign, History, ArrowUpRight, ArrowDownRight, Camera, Key, Trash2, Edit2, X, Save, Scissors, Users, User, Package, Globe, ShoppingBag, Clock, CheckSquare, Square, GraduationCap, FileText, CheckCircle, Video, Plus, Play, UserPlus, BookOpen, BarChart3, Lock, ChevronDown, ChevronRight, Link as LinkIcon, UserCheck, Gift, Award } from 'lucide-react';
+import { ShieldCheck, TrendingUp, DollarSign, History, ArrowUpRight, ArrowDownRight, Camera, Key, Trash2, Edit2, X, Save, Scissors, Users, User, Package, Globe, ShoppingBag, Clock, CheckSquare, Square, GraduationCap, FileText, CheckCircle, Video, Plus, Play, UserPlus, BookOpen, BarChart3, Lock, ChevronDown, ChevronRight, Link as LinkIcon, UserCheck, Gift, Award, Info } from 'lucide-react';
 import { AdminUser, Service, Staff, Client, Product, UnitType, Course, Order, Student, CourseModule, CourseLesson, LoyaltyReward } from '../types';
 
 export const ManagerScreen: React.FC = () => {
@@ -242,7 +242,7 @@ export const ManagerScreen: React.FC = () => {
                               <th className="p-3">Tipo</th>
                               <th className="p-3">Cliente</th>
                               <th className="p-3">Profissional</th>
-                              <th className="p-3">Registrado Por</th>
+                              <th className="p-3 text-right">Registrado Por</th>
                               <th className="p-3 text-right">Valor</th>
                           </tr>
                       </thead>
@@ -260,7 +260,7 @@ export const ManagerScreen: React.FC = () => {
                                   </td>
                                   <td className="p-3 text-gray-600">{item.clientName}</td>
                                   <td className="p-3 text-gray-600">{item.staffName}</td>
-                                  <td className="p-3 text-gray-500 text-xs flex items-center">
+                                  <td className="p-3 text-gray-500 text-xs flex items-center justify-end">
                                       {item.recordedBy && <><UserCheck size={12} className="mr-1 text-purple-500"/> {item.recordedBy}</>}
                                   </td>
                                   <td className="p-3 text-right font-bold text-green-600">R$ {(item.price * item.quantity).toFixed(2)}</td>
@@ -361,6 +361,17 @@ export const ManagerScreen: React.FC = () => {
                         <span className="text-sm text-gray-600">Disponível Online</span>
                     </div>
                   </div>
+
+                  {/* NEW: Info for Hair Products */}
+                  {prodOrigin === 'hair_business' && (
+                      <div className="bg-purple-50 p-3 rounded-lg border border-purple-100 text-sm text-purple-800 flex items-center">
+                          <Info size={16} className="mr-2 shrink-0"/>
+                          <div>
+                              Para "Cabelo (Loja Física)", desmarque "Disponível Online".<br/>
+                              Para "Cabelo (Pedido Online)", marque "Disponível Online".
+                          </div>
+                      </div>
+                  )}
 
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Imagens do Produto</label>

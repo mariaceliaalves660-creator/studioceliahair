@@ -42,40 +42,6 @@ export const ProductsScreen: React.FC = () => {
       }
   }, [loggedInClient]);
 
-  // Edit Form State (Admin)
-  const [editName, setEditName] = useState('');
-  const [editCategory, setEditCategory] = useState('');
-  const [editPrice, setEditPrice] = useState('');
-  const [editStock, setEditStock] = useState('');
-  const [editUnit, setEditUnit] = useState<UnitType>('un');
-  const [editImage, setEditImage] = useState('');
-  const editFileInputRef = useRef<HTMLInputElement>(null);
-
-  // Filter Products based on Tab
-  const filteredProducts = products.filter(p => {
-    if (categoryTab === 'hair') {
-        return p.origin === 'hair_business';
-    }
-    // Default or 'store'
-    return !p.origin || p.origin === 'store';
-  });
-
-  const filteredCourses = courses.filter(c => c.active);
-
-  // --- Login Logic ---
-  const handleClientLogin = (e: React.FormEvent) => {
-      e.preventDefault();
-      const client = clients.find(c => c.email === loginEmail && c.password === loginPass);
-      if (client) {
-          setLoggedInClient(client);
-          setShowLoginModal(false);
-          setLoginEmail('');
-          setLoginPass('');
-      } else {
-          alert('Email ou senha incorretos.');
-      }
-  };
-
   // Re-calculate points whenever pointRedemptions or sales change
   const calculateClientPoints = () => {
       if (!loggedInClient) return 0;
@@ -357,14 +323,20 @@ export const ProductsScreen: React.FC = () => {
 
       {/* PRODUCTS GRID */}
       {categoryTab !== 'courses' ? (
-          filteredProducts.length === 0 ? (
+          products.filter(p => {
+            if (categoryTab === 'hair') return p.origin === 'hair_business';
+            return !p.origin || p.origin === 'store';
+          }).length === 0 ? (
               <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                   <Package size={48} className="mx-auto text-gray-300 mb-4"/>
                   <p className="text-gray-500 font-medium">Nenhum produto encontrado nesta categoria.</p>
               </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredProducts.map((product) => {
+                {products.filter(p => {
+                    if (categoryTab === 'hair') return p.origin === 'hair_business';
+                    return !p.origin || p.origin === 'store';
+                }).map((product) => {
                 const isLowStock = product.stock <= 5;
                 const isOutOfStock = product.stock <= 0;
                 const badgeText = product.origin === 'hair_business' ? 'VENDIDO' : 'ESGOTADO';
@@ -416,6 +388,13 @@ export const ProductsScreen: React.FC = () => {
                         </div>
                         <h3 className="font-bold text-gray-800 text-sm leading-snug mb-1 line-clamp-2 min-h-[2.5em]">{product.name}</h3>
                         
+                        {/* NEW: Display for Hair Products */}
+                        {product.origin === 'hair_business' && (
+                            <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 self-start ${product.isOnline ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
+                                {product.isOnline ? 'Cabelo (Pedido Online)' : 'Cabelo (Loja Física)'}
+                            </div>
+                        )}
+
                         <div className="mt-auto pt-2 flex items-end justify-between">
                             <div className="text-lg font-bold text-gray-900">
                                 R$ {product.price.toFixed(2)}
@@ -434,14 +413,14 @@ export const ProductsScreen: React.FC = () => {
             </div>
           )
       ) : (
-          filteredCourses.length === 0 ? (
+          courses.filter(c => c.active).length === 0 ? (
             <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                 <GraduationCap size={48} className="mx-auto text-gray-300 mb-4"/>
                 <p className="text-gray-500 font-medium">Nenhum curso disponível no momento.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCourses.map((course) => {
+                {courses.filter(c => c.active).map((course) => {
                     const enrolled = students.filter(s => s.enrolledCourseIds.includes(course.id)).length;
                     const isFull = course.maxStudents ? enrolled >= course.maxStudents : false;
                     
@@ -569,11 +548,19 @@ export const ProductsScreen: React.FC = () => {
                           </h2>
                           
                           {'category' in viewProduct ? (
-                            <p className="text-gray-600 text-sm leading-relaxed mb-6 border-l-2 border-rose-200 pl-3">
-                                {viewProduct.category.length > 20 
-                                    ? viewProduct.category 
-                                    : `Produto de alta qualidade da categoria ${viewProduct.category}. Ideal para realçar sua beleza e estilo.`}
-                            </p>
+                            <>
+                                <p className="text-gray-600 text-sm leading-relaxed mb-3 border-l-2 border-rose-200 pl-3">
+                                    {viewProduct.category.length > 20 
+                                        ? viewProduct.category 
+                                        : `Produto de alta qualidade da categoria ${viewProduct.category}. Ideal para realçar sua beleza e estilo.`}
+                                </p>
+                                {/* NEW: Delivery info for online hair products */}
+                                {viewProduct.origin === 'hair_business' && viewProduct.isOnline && (
+                                    <div className="bg-purple-50 text-purple-700 text-xs font-bold p-2 rounded-lg mb-4 flex items-center">
+                                        <Truck size={14} className="mr-2"/> Entrega: 7 a 15 dias úteis.
+                                    </div>
+                                )}
+                            </>
                           ) : (
                              <div className="text-sm text-gray-600 space-y-3 mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
                                 <div className="flex items-start">
