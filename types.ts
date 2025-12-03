@@ -302,6 +302,7 @@ export interface StoredHair {
   circumference: number; // in cm
   status: 'stored' | 'delivered';
   notes?: string; // Optional notes
+  deliveryCode?: string; // NEW: Code for client to confirm delivery
 }
 
 export interface AppData {

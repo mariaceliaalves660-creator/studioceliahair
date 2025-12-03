@@ -58,6 +58,11 @@ export const HairBusinessScreen: React.FC = () => {
   const [storedHairCircumference, setStoredHairCircumference] = useState('');
   const [storedHairNotes, setStoredHairNotes] = useState('');
   const [editingStoredHair, setEditingStoredHair] = useState<StoredHair | null>(null);
+  const [newlyRegisteredStoredHair, setNewlyRegisteredStoredHair] = useState<StoredHair | null>(null); // To show success screen
+  const [showDeliveryConfirmModal, setShowDeliveryConfirmModal] = useState(false);
+  const [deliveryCodeInput, setDeliveryCodeInput] = useState('');
+  const [deliveryConfirmError, setDeliveryConfirmError] = useState('');
+  const [storedHairToDeliver, setStoredHairToDeliver] = useState<StoredHair | null>(null);
 
 
   // Sync state when entering the screen OR changing the rule context
@@ -477,7 +482,11 @@ export const HairBusinessScreen: React.FC = () => {
       return;
     }
 
-    const hairData: Omit<StoredHair, 'id'> = {
+    const newId = `sh-${Date.now()}`;
+    const generatedCode = `SH-${Date.now().toString().slice(-6)}`; // Generate unique code
+
+    const hairData: StoredHair = {
+      id: newId,
       clientId: client.id,
       clientName: client.name,
       dateStored: storedHairDate,
@@ -488,14 +497,15 @@ export const HairBusinessScreen: React.FC = () => {
       circumference: parseInt(storedHairCircumference),
       status: 'stored',
       notes: storedHairNotes || undefined,
+      deliveryCode: generatedCode, // Save the generated code
     };
 
     if (editingStoredHair) {
       await updateStoredHair({ ...editingStoredHair, ...hairData });
       alert('Cabelo guardado atualizado!');
     } else {
-      await addStoredHair({ id: `sh-${Date.now()}`, ...hairData });
-      alert('Cabelo guardado registrado!');
+      await addStoredHair(hairData);
+      setNewlyRegisteredStoredHair(hairData); // Set for success screen
     }
     resetStoredHairForm();
   };
@@ -522,14 +532,76 @@ export const HairBusinessScreen: React.FC = () => {
     setStoredHairLength('');
     setStoredHairCircumference('');
     setStoredHairNotes('');
+    setNewlyRegisteredStoredHair(null); // Clear success state
   };
 
-  const handleDeliverStoredHair = async (hair: StoredHair) => {
-    if (confirm(`Confirmar entrega do cabelo para ${hair.clientName}?`)) {
-      await updateStoredHair({ ...hair, status: 'delivered', dateDelivered: new Date().toISOString().split('T')[0] });
-      alert('Cabelo marcado como entregue!');
-    }
+  const openDeliveryConfirmModal = (hair: StoredHair) => {
+    setStoredHairToDeliver(hair);
+    setDeliveryCodeInput('');
+    setDeliveryConfirmError('');
+    setShowDeliveryConfirmModal(true);
   };
+
+  const handleConfirmDelivery = async () => {
+    if (!storedHairToDeliver || !deliveryCodeInput) {
+      setDeliveryConfirmError("Por favor, insira o código.");
+      return;
+    }
+
+    if (deliveryCodeInput !== storedHairToDeliver.deliveryCode) {
+      setDeliveryConfirmError("Código incorreto. Verifique com o cliente.");
+      return;
+    }
+
+    await updateStoredHair({ 
+      ...storedHairToDeliver, 
+      status: 'delivered', 
+      dateDelivered: new Date().toISOString().split('T')[0] 
+    });
+    alert('Cabelo marcado como entregue!');
+    setShowDeliveryConfirmModal(false);
+    setStoredHairToDeliver(null);
+  };
+
+  // If a new hair item was just registered, show a success screen
+  if (newlyRegisteredStoredHair) {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center min-h-[80vh] text-center animate-fade-in">
+        <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 mb-6">
+          <CheckCircle size={64} />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Cabelo Registrado!</h2>
+        <p className="text-gray-500 mb-4 max-w-xs mx-auto">
+          O cabelo de <strong>{newlyRegisteredStoredHair.clientName}</strong> foi registrado com sucesso.
+        </p>
+        {newlyRegisteredStoredHair.deliveryCode && (
+            <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg mb-6 text-purple-800 font-bold text-xl flex items-center justify-center">
+                <span className="mr-2">CÓDIGO DE ENTREGA:</span>
+                <span>{newlyRegisteredStoredHair.deliveryCode}</span>
+                <button 
+                    onClick={() => navigator.clipboard.writeText(newlyRegisteredStoredHair.deliveryCode || '')}
+                    className="ml-3 p-1 rounded-full hover:bg-purple-100 text-purple-600"
+                    title="Copiar código"
+                >
+                    <Copy size={18}/>
+                </button>
+            </div>
+        )}
+        <p className="text-sm text-gray-600 mb-8 max-w-xs mx-auto">
+            Informe este código ao cliente para que ele possa confirmar a retirada.
+        </p>
+        
+        <div className="w-full max-w-sm space-y-3">
+            <button 
+                onClick={() => setNewlyRegisteredStoredHair(null)} 
+                className="w-full bg-gray-100 text-gray-700 py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition"
+            >
+                Voltar para Cabelo Guardado
+            </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 pb-20 relative">
@@ -1205,6 +1277,18 @@ export const HairBusinessScreen: React.FC = () => {
                                         <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full flex items-center"><Tag size={10} className="mr-1"/> {hair.circumference} cm</span>
                                     </div>
                                     {hair.notes && <p className="text-xs text-gray-400 mt-2 italic">Obs: {hair.notes}</p>}
+                                    {hair.status === 'stored' && hair.deliveryCode && (
+                                        <div className="mt-3 bg-gray-100 p-2 rounded-lg text-xs border border-gray-200 flex items-center justify-between">
+                                            <span className="font-bold text-gray-700">CÓDIGO: {hair.deliveryCode}</span>
+                                            <button 
+                                                onClick={() => navigator.clipboard.writeText(hair.deliveryCode || '')}
+                                                className="ml-3 p-1 rounded-full hover:bg-gray-200 text-gray-600"
+                                                title="Copiar código"
+                                            >
+                                                <Copy size={14}/>
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex flex-col items-end gap-2">
@@ -1213,7 +1297,7 @@ export const HairBusinessScreen: React.FC = () => {
                                 </span>
                                 {hair.status === 'stored' && (
                                     <button 
-                                        onClick={() => handleDeliverStoredHair(hair)}
+                                        onClick={() => openDeliveryConfirmModal(hair)}
                                         className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center hover:bg-green-700 transition"
                                     >
                                         <CheckCircle size={14} className="mr-1"/> Marcar como Entregue
@@ -1496,6 +1580,45 @@ export const HairBusinessScreen: React.FC = () => {
                             <Save size={18} className="mr-2"/> Salvar Alterações
                         </button>
                     </div>
+                </form>
+            </div>
+        </div>
+      )}
+
+      {/* DELIVERY CONFIRMATION MODAL */}
+      {showDeliveryConfirmModal && storedHairToDeliver && (
+        <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative">
+                <button onClick={() => setShowDeliveryConfirmModal(false)} className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100"><X size={20}/></button>
+                <div className="text-center mb-6">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+                        <CheckCircle size={32}/>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800">Confirmar Entrega</h3>
+                    <p className="text-sm text-gray-500">
+                        Para entregar o cabelo de <strong>{storedHairToDeliver.clientName}</strong>, peça o código de entrega ao cliente.
+                    </p>
+                </div>
+                <form onSubmit={(e) => { e.preventDefault(); handleConfirmDelivery(); }} className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Código de Entrega</label>
+                        <input 
+                            required 
+                            type="text" 
+                            className="w-full p-3 border rounded-xl text-center font-bold text-lg" 
+                            value={deliveryCodeInput} 
+                            onChange={e => setDeliveryCodeInput(e.target.value)} 
+                            autoFocus
+                        />
+                    </div>
+                    {deliveryConfirmError && (
+                        <div className="text-red-500 text-sm font-bold text-center bg-red-50 p-2 rounded-lg">
+                            {deliveryConfirmError}
+                        </div>
+                    )}
+                    <button type="submit" className="w-full bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-green-700">
+                        Confirmar Entrega
+                    </button>
                 </form>
             </div>
         </div>

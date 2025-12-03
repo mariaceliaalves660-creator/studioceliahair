@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, Gift, CheckCircle, ShoppingBag, Box } from 'lucide-react';
-import { Sale, Client, LoyaltyReward, StoredHair } from '../types';
+import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, Gift, CheckCircle, ShoppingBag, Box, Tag, Copy } from 'lucide-react'; // Importar Copy
 
 // Loyalty Tiers Configuration
 const TIERS = [
@@ -150,6 +149,18 @@ export const ClientsScreen: React.FC = () => {
                     {hair.dateDelivered && <p>Entregue em: {new Date(hair.dateDelivered).toLocaleDateString('pt-BR')}</p>}
                     <p>{hair.weight} {hair.weightUnit} • {hair.length} cm • {hair.circumference} cm</p>
                     {hair.notes && <p className="italic">Obs: {hair.notes}</p>}
+                    {hair.status === 'stored' && hair.deliveryCode && (
+                        <div className="mt-2 bg-gray-100 p-2 rounded-lg text-xs border border-gray-200 flex items-center justify-between">
+                            <span className="font-bold text-gray-700">CÓDIGO: {hair.deliveryCode}</span>
+                            <button 
+                                onClick={() => navigator.clipboard.writeText(hair.deliveryCode || '')}
+                                className="ml-3 p-1 rounded-full hover:bg-gray-200 text-gray-600"
+                                title="Copiar código"
+                            >
+                                <Copy size={14}/>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         );
