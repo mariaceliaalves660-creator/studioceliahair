@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { TrendingUp, BookOpen, Plus, Users, ShoppingBag, Edit2, Camera, Trash2, Video, Link as LinkIcon, Play, FileText, BarChart3, Save, CheckSquare, Square, Clock, Upload, Loader2, MessageSquareText } from 'lucide-react';
 import { Course, CourseModule, CourseLesson, Student, Client, Sale } from '../types';
@@ -96,7 +96,7 @@ export const CoursesManagementScreen: React.FC = () => {
         price: price,
         imageUrl: crsImage,
         active: true,
-        maxStudents: crsLimit ? parseInt(crsLimit) : undefined
+        maxStudents: crsLimit !== '' ? parseInt(crsLimit) : undefined // Ajustado para tratar '0' corretamente
       };
 
       console.log("Course data to save:", courseData); // Debugging log
@@ -328,6 +328,13 @@ export const CoursesManagementScreen: React.FC = () => {
   const toggleStudentCourse = (courseId: string) => {
     setStdCourses(prev => prev.includes(courseId) ? prev.filter(id => id !== courseId) : [...prev, courseId]);
   };
+
+  // NEW LOG: Log courses state when view is 'list'
+  useEffect(() => {
+      if (view === 'list') {
+          console.log("CoursesManagementScreen: Courses in list view:", courses);
+      }
+  }, [view, courses]);
 
   return (
     <div className="p-4 pb-20">

@@ -364,8 +364,20 @@ export const api = {
       delete: async (id: string) => { const db = getDB(); db.services = db.services.filter(i => i.id !== id); saveDB(db); }
   },
   courses: {
-      create: async (c: Course) => { const db = getDB(); db.courses.push(c); saveDB(db); },
-      update: async (c: Course) => { const db = getDB(); db.courses = db.courses.map(i => i.id === c.id ? c : i); saveDB(db); },
+      create: async (c: Course) => { 
+          const db = getDB(); 
+          console.log("API: Before adding course, db.courses:", db.courses); // NEW LOG
+          db.courses.push(c); 
+          saveDB(db); 
+          console.log("API: After adding course, db.courses:", db.courses); // NEW LOG
+      },
+      update: async (c: Course) => { 
+          const db = getDB(); 
+          console.log("API: Before updating course, db.courses:", db.courses); // NEW LOG
+          db.courses = db.courses.map(i => i.id === c.id ? c : i); 
+          saveDB(db); 
+          console.log("API: After updating course, db.courses:", db.courses); // NEW LOG
+      },
       delete: async (id: string) => { const db = getDB(); db.courses = db.courses.filter(i => i.id !== id); saveDB(db); }
   },
   students: {

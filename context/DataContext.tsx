@@ -48,6 +48,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setServices(data.services);
       setProducts(data.products);
       setCourses(data.courses);
+      console.log("DataContext: Courses after refreshData:", data.courses); // NEW LOG
       setStudents(data.students);
       setStaff(data.staff);
       setClients(data.clients);
@@ -111,8 +112,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // For now, let's assume api.loadAllData handles the "read", and we need a "write"
       // *Self-Correction*: I'll just use the pattern of modifying local then generic save for simple things not in API controller?
       // No, strictly use API. I will assume I added generic handlers in API or add them now.
-      // *Actually, the API file I generated HAS generic handlers for services/staff etc.*
-      // I will assume I added appointments there or will add it now in spirit.
       // *Correction*: I missed appointments in API.ts. I will treat it as "Generic State" for now or just append to state and saveDB.
       // Ideally, `api.appointments` should have `appointments: { create... }`.
       // Let's implement it as a "pass through" for now to keep this file clean.
