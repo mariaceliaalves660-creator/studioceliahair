@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { 
   Package, Calendar, ShoppingBag, 
-  DollarSign, Users, User, ShieldCheck, Wand2, ArrowRight, Scissors, GraduationCap, BookOpen
+  DollarSign, Users, User, ShieldCheck, Wand2, ArrowRight, Scissors, GraduationCap, BookOpen, Box // Importando Box
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
@@ -24,7 +23,7 @@ export const HomeScreen: React.FC<HomeProps> = ({ onNavigate }) => {
     { id: 'hair-business', label: 'Gestão Cabelos', icon: Scissors, color: 'bg-fuchsia-100 text-fuchsia-600' }, 
     { id: 'courses-management', label: 'Gestão de Cursos', icon: BookOpen, color: 'bg-cyan-100 text-cyan-600' },
     { id: 'manager', label: 'Gerente (Acesso Total)', icon: ShieldCheck, color: 'bg-gray-100 text-gray-600', superAdminOnly: true },
-    { id: 'ai-studio', label: 'Simulador IA', icon: Wand2, color: 'bg-violet-100 text-violet-600', fullWidth: true },
+    { id: 'stored-hair', label: 'Cabelo Guardado', icon: Box, color: 'bg-purple-100 text-purple-600', fullWidth: true }, // ALTERADO: Simulador IA para Cabelo Guardado
   ];
 
   if (viewMode === 'client') {
