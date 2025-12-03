@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, Gift, CheckCircle, ShoppingBag, Box, Tag, Copy } from 'lucide-react'; // Importar Gift
+import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, CheckCircle, ShoppingBag, Box, Tag, Copy } from 'lucide-react'; // Importar Cake
 
 // Loyalty Tiers Configuration
 const TIERS = [
@@ -333,7 +333,7 @@ export const ClientsScreen: React.FC = () => {
                       <h3 className="font-bold text-gray-800 text-lg leading-tight flex items-center">
                         {client.name}
                         {client.isBirthdayMonth && (
-                            <Gift size={18} className="ml-2 text-pink-500" title="Mês de Aniversário!"/>
+                            <Cake size={18} className="ml-2 text-pink-500" title="Mês de Aniversário!"/>
                         )}
                       </h3>
                       <div className="flex items-center text-gray-500 mt-1 text-xs">
@@ -381,7 +381,7 @@ export const ClientsScreen: React.FC = () => {
                <h2 className="text-2xl font-bold flex items-center">
                  {selectedClient.name}
                  {selectedClient.isBirthdayMonth && (
-                    <Gift size={24} className="ml-3 text-yellow-300" title="Mês de Aniversário!"/>
+                    <Cake size={24} className="ml-3 text-yellow-300" title="Mês de Aniversário!"/>
                  )}
                </h2>
                <div className="flex items-center mt-2 space-x-4 text-white/80 text-sm">
@@ -455,7 +455,7 @@ export const ClientsScreen: React.FC = () => {
                  <div className="animate-fade-in">
                     <div className="bg-pink-50 p-4 rounded-xl border border-pink-100 mb-4 flex justify-between items-center">
                         <h3 className="font-bold text-pink-800 text-xs uppercase tracking-widest flex items-center">
-                            <Gift size={14} className="mr-2"/> Resgatar Recompensas
+                            <Cake size={14} className="mr-2"/> Resgatar Recompensas
                         </h3>
                         <span className="text-xs font-bold text-pink-600 bg-white px-2 py-1 rounded shadow-sm">
                             Saldo: {selectedClient.points} pts
@@ -480,7 +480,7 @@ export const ClientsScreen: React.FC = () => {
                                     <div key={reward.id} className={`flex justify-between items-center p-4 rounded-xl border transition ${!hasStock || limitReached ? 'opacity-60 border-red-100 bg-red-50' : canRedeem ? 'bg-white border-green-200 hover:shadow-md' : 'bg-gray-50 border-gray-100'}`}>
                                         <div className="flex items-center">
                                             <div className={`p-3 rounded-full mr-3 ${canRedeem && hasStock && !limitReached ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'}`}>
-                                                <Gift size={20}/>
+                                                <Cake size={20}/>
                                             </div>
                                             <div>
                                                 <div className="font-bold text-sm text-gray-800">{reward.title}</div>
