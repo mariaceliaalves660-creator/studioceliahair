@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, Gift, CheckCircle, ShoppingBag } from 'lucide-react';
-import { Sale, Client, LoyaltyReward } from '../types';
+import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, Gift, CheckCircle, ShoppingBag, Box } from 'lucide-react';
+import { Sale, Client, LoyaltyReward, StoredHair } from '../types';
 
 // Loyalty Tiers Configuration
 const TIERS = [
@@ -17,7 +17,7 @@ const BASE_TIER = { name: 'Novo', min: 0, color: 'text-gray-500 bg-white border-
 
 // Extended Client Interface to handle computed properties and hydrated history
 interface ExtendedClient extends Omit<Client, 'history'> {
-  history: Sale[]; // Overrides history from string[] to Sale[]
+  history: (Sale | StoredHair)[]; // Overrides history to include StoredHair
   totalSpent: number;
   spentServices: number; // NEW: Specific spend on services
   spentProducts: number; // NEW: Specific spend on products
@@ -29,17 +29,26 @@ interface ExtendedClient extends Omit<Client, 'history'> {
 }
 
 export const ClientsScreen: React.FC = () => {
-  const { clients, sales, loyaltyRewards, pointRedemptions, redeemPoints } = useData();
+  const { clients, sales, loyaltyRewards, pointRedemptions, redeemPoints, storedHair } = useData(); // Get storedHair
   const [selectedClient, setSelectedClient] = useState<ExtendedClient | null>(null);
   const [filterTier, setFilterTier] = useState<string>('todos');
   const [rankingMode, setRankingMode] = useState<'general' | 'services' | 'products' | 'courses'>('general');
   const [modalTab, setModalTab] = useState<'history' | 'shop'>('history');
 
-  // Helper to get all sales for a client
+  // Helper to get all sales and stored hair for a client
   const getClientHistory = (clientId: string) => {
-    return sales
+    const clientSales = sales
       .filter(s => s.clientId === clientId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .map(s => ({ ...s, type: 'sale' as const })); // Tag sales with type
+    
+    const clientStoredHair = storedHair
+      .filter(h => h.clientId === clientId)
+      .map(h => ({ ...h, type: 'storedHair' as const })); // Tag stored hair with type
+
+    // Combine and sort by date
+    return [...clientSales, ...clientStoredHair].sort((a, b) => 
+      new Date(b.dateStored || b.date).getTime() - new Date(a.dateStored || a.date).getTime()
+    );
   };
 
   const getClientStats = (clientId: string) => {
@@ -49,23 +58,25 @@ export const ClientsScreen: React.FC = () => {
     let spentProducts = 0;
     let spentCourses = 0;
 
-    history.forEach(sale => {
-        totalSpent += sale.total;
-        
-        // Calculate breakdown based on items
-        sale.items.forEach(item => {
-            const itemTotal = item.price * item.quantity;
-            if (item.type === 'service') {
-                spentServices += itemTotal;
-            } else if (item.type === 'product') {
-                spentProducts += itemTotal;
-            } else if (item.type === 'course') {
-                spentCourses += itemTotal;
-            }
-        });
+    history.forEach(entry => {
+        if ('total' in entry) { // It's a Sale
+            totalSpent += entry.total;
+            
+            // Calculate breakdown based on items
+            entry.items.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                if (item.type === 'service') {
+                    spentServices += itemTotal;
+                } else if (item.type === 'product') {
+                    spentProducts += itemTotal;
+                } else if (item.type === 'course') {
+                    spentCourses += itemTotal;
+                }
+            });
+        }
     });
 
-    const visits = history.length;
+    const visits = history.filter(entry => 'total' in entry).length; // Only count sales as visits
     
     // Calculate Redeemed Points
     const redeemed = pointRedemptions.filter(r => r.clientId === clientId).reduce((acc, r) => acc + r.pointsCost, 0);
@@ -93,31 +104,57 @@ export const ClientsScreen: React.FC = () => {
     });
   };
 
-  const renderHistoryItem = (sale: Sale) => (
-    <div key={sale.id} className="border-l-2 border-pink-300 pl-4 py-2 mb-4 relative">
-      <div className="absolute -left-[9px] top-3 w-4 h-4 rounded-full bg-pink-100 border-2 border-pink-400"></div>
-      <div className="flex justify-between items-start mb-1">
-        <span className="text-sm font-bold text-gray-700">{formatDate(sale.date)}</span>
-        <span className="text-sm font-bold text-pink-700 bg-pink-50 px-2 rounded">R$ {sale.total.toFixed(2)}</span>
-      </div>
-      <div className="space-y-1">
-        {sale.items.map((item, idx) => (
-          <div key={idx} className="text-xs text-gray-600 flex items-center justify-between">
-             <div className="flex items-center">
-                 <span className="w-1.5 h-1.5 bg-gray-300 rounded-full mr-2"></span>
-                 {item.name} 
-                 {item.category && <span className="text-gray-400 ml-1">({item.category})</span>} {/* NEW: Display category */}
-                 {item.type === 'product' && <span className="text-gray-400 ml-1">({item.quantity} {item.unit})</span>}
-                 {item.type === 'course' && <span className="text-blue-500 ml-1 font-bold">(Curso)</span>}
-             </div>
-             {item.staffName && (
-                 <span className="text-[10px] bg-gray-100 px-1 rounded text-gray-500">{item.staffName}</span>
-             )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  const renderHistoryItem = (entry: Sale | StoredHair) => {
+    if ('total' in entry) { // It's a Sale
+        const sale = entry as Sale;
+        return (
+            <div key={sale.id} className="border-l-2 border-pink-300 pl-4 py-2 mb-4 relative">
+                <div className="absolute -left-[9px] top-3 w-4 h-4 rounded-full bg-pink-100 border-2 border-pink-400"></div>
+                <div className="flex justify-between items-start mb-1">
+                    <span className="text-sm font-bold text-gray-700">{formatDate(sale.date)}</span>
+                    <span className="text-sm font-bold text-pink-700 bg-pink-50 px-2 rounded">R$ {sale.total.toFixed(2)}</span>
+                </div>
+                <div className="space-y-1">
+                    {sale.items.map((item, idx) => (
+                        <div key={idx} className="text-xs text-gray-600 flex items-center justify-between">
+                            <div className="flex items-center">
+                                <span className="w-1.5 h-1.5 bg-gray-300 rounded-full mr-2"></span>
+                                {item.name} 
+                                {item.category && <span className="text-gray-400 ml-1">({item.category})</span>}
+                                {item.type === 'product' && <span className="text-gray-400 ml-1">({item.quantity} {item.unit})</span>}
+                                {item.type === 'course' && <span className="text-blue-500 ml-1 font-bold">(Curso)</span>}
+                            </div>
+                            {item.staffName && (
+                                <span className="text-[10px] bg-gray-100 px-1 rounded text-gray-500">{item.staffName}</span>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    } else { // It's StoredHair
+        const hair = entry as StoredHair;
+        return (
+            <div key={hair.id} className={`border-l-2 ${hair.status === 'delivered' ? 'border-green-300' : 'border-purple-300'} pl-4 py-2 mb-4 relative`}>
+                <div className={`absolute -left-[9px] top-3 w-4 h-4 rounded-full ${hair.status === 'delivered' ? 'bg-green-100 border-2 border-green-400' : 'bg-purple-100 border-2 border-purple-400'}`}></div>
+                <div className="flex justify-between items-start mb-1">
+                    <span className="text-sm font-bold text-gray-700 flex items-center">
+                        <Box size={14} className="mr-1"/> Cabelo Guardado
+                    </span>
+                    <span className={`text-xs font-bold px-2 rounded ${hair.status === 'delivered' ? 'bg-green-50 text-green-700' : 'bg-purple-50 text-purple-700'}`}>
+                        {hair.status === 'delivered' ? 'Entregue' : 'Guardado'}
+                    </span>
+                </div>
+                <div className="text-xs text-gray-600 space-y-1">
+                    <p>Deixado em: {new Date(hair.dateStored).toLocaleDateString('pt-BR')}</p>
+                    {hair.dateDelivered && <p>Entregue em: {new Date(hair.dateDelivered).toLocaleDateString('pt-BR')}</p>}
+                    <p>{hair.weight} {hair.weightUnit} • {hair.length} cm • {hair.circumference} cm</p>
+                    {hair.notes && <p className="italic">Obs: {hair.notes}</p>}
+                </div>
+            </div>
+        );
+    }
+  };
 
   // Prepare and Sort Clients based on Ranking Mode
   const processedClients = clients.map(client => {
@@ -410,10 +447,18 @@ export const ClientsScreen: React.FC = () => {
                         ) : (
                             loyaltyRewards.map(reward => {
                                 const canRedeem = selectedClient.points >= reward.pointsCost;
+                                const hasStock = reward.stock === undefined || reward.stock > 0;
+                                
+                                let limitReached = false;
+                                if (reward.limitPerClient) {
+                                    const redemptions = pointRedemptions.filter(r => r.clientId === selectedClient.id && r.rewardId === reward.id).length;
+                                    if (redemptions >= reward.limitPerClient) limitReached = true;
+                                }
+
                                 return (
-                                    <div key={reward.id} className={`flex justify-between items-center p-4 rounded-xl border transition ${canRedeem ? 'bg-white border-green-200 hover:shadow-md' : 'bg-gray-50 border-gray-100 opacity-60'}`}>
+                                    <div key={reward.id} className={`flex justify-between items-center p-4 rounded-xl border transition ${!hasStock || limitReached ? 'opacity-60 border-red-100 bg-red-50' : canRedeem ? 'bg-white border-green-200 hover:shadow-md' : 'bg-gray-50 border-gray-100'}`}>
                                         <div className="flex items-center">
-                                            <div className={`p-3 rounded-full mr-3 ${canRedeem ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'}`}>
+                                            <div className={`p-3 rounded-full mr-3 ${canRedeem && hasStock && !limitReached ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'}`}>
                                                 <Gift size={20}/>
                                             </div>
                                             <div>
@@ -425,10 +470,10 @@ export const ClientsScreen: React.FC = () => {
                                             <div className="text-sm font-bold text-gray-600 mb-1">{reward.pointsCost} pts</div>
                                             <button 
                                                 onClick={() => handleRedeem(reward)}
-                                                disabled={!canRedeem}
-                                                className={`text-xs px-3 py-1.5 rounded font-bold transition ${canRedeem ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                                                disabled={!canRedeem || !hasStock || limitReached}
+                                                className={`text-xs px-3 py-1.5 rounded font-bold transition ${canRedeem && hasStock && !limitReached ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
                                             >
-                                                Resgatar
+                                                {limitReached ? 'Limite Atingido' : !hasStock ? 'Esgotado' : 'Resgatar'}
                                             </button>
                                         </div>
                                     </div>
@@ -478,7 +523,7 @@ export const ClientsScreen: React.FC = () => {
                         </div>
                     ) : (
                         <div className="pl-2">
-                        {selectedClient.history.map(sale => renderHistoryItem(sale))}
+                        {selectedClient.history.map(entry => renderHistoryItem(entry))}
                         </div>
                     )}
                  </div>

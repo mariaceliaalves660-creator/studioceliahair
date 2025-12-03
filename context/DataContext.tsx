@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   AppContextType, Service, Product, Staff, Client, Appointment, Sale, Expense, StaffPayment, 
   RegisterSession, Order, ViewMode, SocialUser, HairQuote, HairCalcConfig, AdminUser, Course, 
-  Student, LoyaltyReward, PointRedemption
+  Student, LoyaltyReward, PointRedemption, StoredHair
 } from '../types';
 import { api } from '../services/api';
 import { 
@@ -39,6 +39,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [loyaltyRewards, setLoyaltyRewards] = useState<LoyaltyReward[]>([]);
   const [pointRedemptions, setPointRedemptions] = useState<PointRedemption[]>([]);
+  const [storedHair, setStoredHair] = useState<StoredHair[]>([]); // NEW
 
   // --- INITIAL LOAD ---
   const refreshData = async () => {
@@ -62,6 +63,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAdminUsers(data.adminUsers);
       setLoyaltyRewards(data.loyaltyRewards);
       setPointRedemptions(data.pointRedemptions);
+      setStoredHair(data.storedHair); // NEW
     } catch (e) {
       console.error("Failed to load data from API", e);
     } finally {
@@ -167,6 +169,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       refreshData();
   };
 
+  // NEW Stored Hair actions
+  const addStoredHair = async (hair: StoredHair) => { await api.storedHair.create(hair); refreshData(); };
+  const updateStoredHair = async (hair: StoredHair) => { await api.storedHair.update(hair); refreshData(); };
+  const removeStoredHair = async (id: string) => { await api.storedHair.delete(id); refreshData(); };
+
   if (loading) {
       return <div className="min-h-screen flex items-center justify-center text-rose-600 font-bold">Carregando Sistema...</div>;
   }
@@ -174,13 +181,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <DataContext.Provider value={{
       viewMode, setViewMode, currentUser, setCurrentUser, currentAdmin, setCurrentAdmin, loggedInClient, setLoggedInClient,
-      services, products, courses, students, staff, clients, appointments, sales, expenses, staffPayments, registerSessions, orders, socialUsers, hairQuotes, hairConfig, adminUsers, loyaltyRewards, pointRedemptions,
+      services, products, courses, students, staff, clients, appointments, sales, expenses, staffPayments, registerSessions, orders, socialUsers, hairQuotes, hairConfig, adminUsers, loyaltyRewards, pointRedemptions, storedHair,
       addService, updateService, removeService, addProduct, updateProduct, removeProduct, addCourse, updateCourse, removeCourse,
       addStudent, updateStudent, removeStudent, addStaff, updateStaff, removeStaff, addClient, updateClient, removeClient,
       addAppointment, updateAppointment, addSale, addExpense, addStaffPayment,
       openRegister, closeRegister, getCurrentSession, addOrder, updateOrder,
       addSocialUser, updateSocialUser, removeSocialUser, addHairQuote, updateHairQuote, updateHairConfig, registerHairPurchase, approveHairQuote,
-      addAdminUser, updateAdminUser, removeAdminUser, addLoyaltyReward, removeLoyaltyReward, redeemPoints
+      addAdminUser, updateAdminUser, removeAdminUser, addLoyaltyReward, removeLoyaltyReward, redeemPoints,
+      addStoredHair, updateStoredHair, removeStoredHair // NEW
     }}>
       {children}
     </DataContext.Provider>

@@ -288,6 +288,22 @@ export interface LoyaltyReward {
   limitPerClient?: number; // NEW: Limit redemptions per client
 }
 
+// NEW: Stored Hair Interface
+export interface StoredHair {
+  id: string;
+  clientId: string;
+  clientName: string; // Denormalized for display
+  dateStored: string; // ISO Date string YYYY-MM-DD
+  dateDelivered?: string; // ISO Date string YYYY-MM-DD, when delivered
+  photoUrl?: string; // Main photo
+  weight: number;
+  weightUnit: UnitType;
+  length: number; // in cm
+  circumference: number; // in cm
+  status: 'stored' | 'delivered';
+  notes?: string; // Optional notes
+}
+
 export interface AppData {
   services: Service[];
   products: Product[];
@@ -307,6 +323,7 @@ export interface AppData {
   adminUsers: AdminUser[]; 
   loyaltyRewards: LoyaltyReward[];
   pointRedemptions: PointRedemption[]; // NEW
+  storedHair: StoredHair[]; // NEW: Stored Hair
 }
 
 export interface AppContextType extends AppData {
@@ -361,7 +378,7 @@ export interface AppContextType extends AppData {
 
   // Order management
   addOrder: (order: Order) => void;
-  updateOrder: (order: Order) => void;
+  updateOrder: (order: Order, approvedByAdminId?: string, approvedByAdminName?: string) => void;
 
   // Social/Hair Mgmt
   addSocialUser: (user: SocialUser) => void;
@@ -383,4 +400,9 @@ export interface AppContextType extends AppData {
   addLoyaltyReward: (reward: LoyaltyReward) => void;
   removeLoyaltyReward: (id: string) => void;
   redeemPoints: (clientId: string, reward: LoyaltyReward) => void; // NEW
+
+  // Stored Hair
+  addStoredHair: (hair: StoredHair) => void; // NEW
+  updateStoredHair: (hair: StoredHair) => void; // NEW
+  removeStoredHair: (id: string) => void; // NEW
 }

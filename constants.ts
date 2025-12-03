@@ -1,4 +1,4 @@
-import { Service, Product, Staff, Client, Appointment, Sale, Expense, StaffPayment, RegisterSession, Order, SocialUser, HairQuote, HairCalcConfig, AdminUser, Course, Student, LoyaltyReward, PointRedemption } from './types';
+import { Service, Product, Staff, Client, Appointment, Sale, Expense, StaffPayment, RegisterSession, Order, SocialUser, HairQuote, HairCalcConfig, AdminUser, Course, Student, LoyaltyReward, PointRedemption, StoredHair } from './types';
 
 export const INITIAL_SERVICES: Service[] = [
   { id: 's1', name: 'Retirada de Mega', price: 150, category: 'Mega Hair' },
@@ -90,6 +90,7 @@ export const INITIAL_SOCIAL_USERS: SocialUser[] = [];
 export const INITIAL_HAIR_QUOTES: HairQuote[] = [];
 export const INITIAL_LOYALTY_REWARDS: LoyaltyReward[] = [];
 export const INITIAL_POINT_REDEMPTIONS: PointRedemption[] = [];
+export const INITIAL_STORED_HAIR: StoredHair[] = []; // NEW: Initial Stored Hair
 
 // NEW: Default Admin
 export const INITIAL_ADMIN_USERS: AdminUser[] = [

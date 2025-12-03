@@ -1,14 +1,15 @@
 import { 
   Service, Product, Course, Student, Staff, Client, Appointment, Sale, Expense, 
   StaffPayment, RegisterSession, Order, SocialUser, HairQuote, HairCalcConfig, 
-  AdminUser, LoyaltyReward, PointRedemption, AppData, SaleItem 
+  AdminUser, LoyaltyReward, PointRedemption, AppData, SaleItem, StoredHair 
 } from '../types';
 import { 
   INITIAL_SERVICES, INITIAL_PRODUCTS, INITIAL_COURSES, INITIAL_STUDENTS, 
   INITIAL_STAFF, INITIAL_CLIENTS, INITIAL_APPOINTMENTS, INITIAL_SALES, 
   INITIAL_EXPENSES, INITIAL_STAFF_PAYMENTS, INITIAL_REGISTER_SESSIONS, 
   INITIAL_ORDERS, INITIAL_SOCIAL_USERS, INITIAL_HAIR_QUOTES, INITIAL_HAIR_CONFIG, 
-  INITIAL_ADMIN_USERS, INITIAL_LOYALTY_REWARDS, INITIAL_POINT_REDEMPTIONS 
+  INITIAL_ADMIN_USERS, INITIAL_LOYALTY_REWARDS, INITIAL_POINT_REDEMPTIONS,
+  INITIAL_STORED_HAIR
 } from '../constants';
 
 const DB_KEY = 'celia_app_data';
@@ -37,7 +38,8 @@ const getDB = (): AppData => {
       hairConfig: INITIAL_HAIR_CONFIG,
       adminUsers: INITIAL_ADMIN_USERS,
       loyaltyRewards: INITIAL_LOYALTY_REWARDS,
-      pointRedemptions: INITIAL_POINT_REDEMPTIONS
+      pointRedemptions: INITIAL_POINT_REDEMPTIONS,
+      storedHair: INITIAL_STORED_HAIR // NEW
     };
     localStorage.setItem(DB_KEY, JSON.stringify(initialData));
     return initialData;
@@ -306,6 +308,27 @@ export const api = {
           }
           saveDB(db);
       }
+  },
+
+  // --- STORED HAIR ---
+  storedHair: {
+    create: async (hair: StoredHair): Promise<StoredHair> => {
+      const db = getDB();
+      db.storedHair.push(hair);
+      saveDB(db);
+      return hair;
+    },
+    update: async (hair: StoredHair): Promise<StoredHair> => {
+      const db = getDB();
+      db.storedHair = db.storedHair.map(h => h.id === hair.id ? hair : h);
+      saveDB(db);
+      return hair;
+    },
+    delete: async (id: string): Promise<void> => {
+      const db = getDB();
+      db.storedHair = db.storedHair.filter(h => h.id !== id);
+      saveDB(db);
+    }
   },
 
   // --- GENERIC CRUD HANDLERS (Services, Staff, etc) ---
