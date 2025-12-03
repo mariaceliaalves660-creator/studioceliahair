@@ -299,7 +299,6 @@ export interface StoredHair {
   weight: number;
   weightUnit: UnitType;
   length: number; // in cm
-  circumference: number; // in cm
   status: 'stored' | 'delivered';
   notes?: string; // Optional notes
   deliveryCode?: string; // NEW: Code for client to confirm delivery

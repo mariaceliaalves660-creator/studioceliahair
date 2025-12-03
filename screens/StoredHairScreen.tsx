@@ -14,7 +14,7 @@ export const StoredHairScreen: React.FC = () => {
   const [storedHairWeight, setStoredHairWeight] = useState('');
   const [storedHairWeightUnit, setStoredHairWeightUnit] = useState<UnitType>('g');
   const [storedHairLength, setStoredHairLength] = useState('');
-  const [storedHairCircumference, setStoredHairCircumference] = useState('');
+  // REMOVIDO: const [storedHairCircumference, setStoredHairCircumference] = useState('');
   const [storedHairNotes, setStoredHairNotes] = useState('');
   const [editingStoredHair, setEditingStoredHair] = useState<StoredHair | null>(null);
   const [newlyRegisteredStoredHair, setNewlyRegisteredStoredHair] = useState<StoredHair | null>(null); // To show success screen
@@ -38,7 +38,7 @@ export const StoredHairScreen: React.FC = () => {
 
   const handleSaveStoredHair = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedClientForStoredHair || !storedHairDate || !storedHairWeight || !storedHairLength || !storedHairCircumference) {
+    if (!selectedClientForStoredHair || !storedHairDate || !storedHairWeight || !storedHairLength) { // REMOVIDO: storedHairCircumference
       alert("Por favor, preencha todos os campos obrigatórios.");
       return;
     }
@@ -61,7 +61,7 @@ export const StoredHairScreen: React.FC = () => {
       weight: parseFloat(storedHairWeight),
       weightUnit: storedHairWeightUnit,
       length: parseInt(storedHairLength),
-      circumference: parseInt(storedHairCircumference),
+      // REMOVIDO: circumference: parseInt(storedHairCircumference),
       status: 'stored',
       notes: storedHairNotes || undefined,
       deliveryCode: generatedCode, // Save the generated code
@@ -85,7 +85,7 @@ export const StoredHairScreen: React.FC = () => {
     setStoredHairWeight(hair.weight.toString());
     setStoredHairWeightUnit(hair.weightUnit);
     setStoredHairLength(hair.length.toString());
-    setStoredHairCircumference(hair.circumference.toString());
+    // REMOVIDO: setStoredHairCircumference(hair.circumference.toString());
     setStoredHairNotes(hair.notes || '');
   };
 
@@ -97,7 +97,7 @@ export const StoredHairScreen: React.FC = () => {
     setStoredHairWeight('');
     setStoredHairWeightUnit('g');
     setStoredHairLength('');
-    setStoredHairCircumference('');
+    // REMOVIDO: setStoredHairCircumference('');
     setStoredHairNotes('');
     setNewlyRegisteredStoredHair(null); // Clear success state
   };
@@ -249,6 +249,8 @@ export const StoredHairScreen: React.FC = () => {
                       onChange={e => setStoredHairLength(e.target.value)} 
                   />
               </div>
+              {/* REMOVIDO: Campo de Circunferência */}
+              {/*
               <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Circunferência (cm)</label>
                   <input 
@@ -261,6 +263,7 @@ export const StoredHairScreen: React.FC = () => {
                       onChange={e => setStoredHairCircumference(e.target.value)} 
                   />
               </div>
+              */}
           </div>
           <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Observações (Opcional)</label>
@@ -301,7 +304,8 @@ export const StoredHairScreen: React.FC = () => {
                               <div className="flex flex-wrap gap-1 mt-2">
                                   <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full flex items-center"><Scale size={10} className="mr-1"/> {hair.weight} {hair.weightUnit}</span>
                                   <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full flex items-center"><Ruler size={10} className="mr-1"/> {hair.length} cm</span>
-                                  <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full flex items-center"><Tag size={10} className="mr-1"/> {hair.circumference} cm</span>
+                                  {/* REMOVIDO: Exibição da Circunferência */}
+                                  {/* <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full flex items-center"><Tag size={10} className="mr-1"/> {hair.circumference} cm</span> */}
                               </div>
                               {hair.notes && <p className="text-xs text-gray-400 mt-2 italic">Obs: {hair.notes}</p>}
                               {hair.status === 'stored' && hair.deliveryCode && (
