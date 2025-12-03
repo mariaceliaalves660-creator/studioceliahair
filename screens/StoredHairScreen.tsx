@@ -14,7 +14,7 @@ export const StoredHairScreen: React.FC = () => {
   const [storedHairWeight, setStoredHairWeight] = useState('');
   const [storedHairWeightUnit, setStoredHairWeightUnit] = useState<UnitType>('g');
   const [storedHairLength, setStoredHairLength] = useState('');
-  // REMOVIDO: const [storedHairCircumference, setStoredHairCircumference] = useState('');
+  // REMOVIDO: const [storedHairCircumference, setStoredHairCircumference] = useState(''); // Removido o estado
   const [storedHairNotes, setStoredHairNotes] = useState('');
   const [editingStoredHair, setEditingStoredHair] = useState<StoredHair | null>(null);
   const [newlyRegisteredStoredHair, setNewlyRegisteredStoredHair] = useState<StoredHair | null>(null); // To show success screen
@@ -38,7 +38,8 @@ export const StoredHairScreen: React.FC = () => {
 
   const handleSaveStoredHair = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedClientForStoredHair || !storedHairDate || !storedHairWeight || !storedHairLength) { // REMOVIDO: storedHairCircumference
+    // Validação ajustada para remover storedHairCircumference
+    if (!selectedClientForStoredHair || !storedHairDate || !storedHairWeight || !storedHairLength) {
       alert("Por favor, preencha todos os campos obrigatórios.");
       return;
     }
@@ -61,7 +62,7 @@ export const StoredHairScreen: React.FC = () => {
       weight: parseFloat(storedHairWeight),
       weightUnit: storedHairWeightUnit,
       length: parseInt(storedHairLength),
-      // REMOVIDO: circumference: parseInt(storedHairCircumference),
+      // REMOVIDO: circumference: parseInt(storedHairCircumference), // Removido do objeto de dados
       status: 'stored',
       notes: storedHairNotes || undefined,
       deliveryCode: generatedCode, // Save the generated code
@@ -85,7 +86,7 @@ export const StoredHairScreen: React.FC = () => {
     setStoredHairWeight(hair.weight.toString());
     setStoredHairWeightUnit(hair.weightUnit);
     setStoredHairLength(hair.length.toString());
-    // REMOVIDO: setStoredHairCircumference(hair.circumference.toString());
+    // REMOVIDO: setStoredHairCircumference(hair.circumference.toString()); // Removido da inicialização
     setStoredHairNotes(hair.notes || '');
   };
 
@@ -97,7 +98,7 @@ export const StoredHairScreen: React.FC = () => {
     setStoredHairWeight('');
     setStoredHairWeightUnit('g');
     setStoredHairLength('');
-    // REMOVIDO: setStoredHairCircumference('');
+    // REMOVIDO: setStoredHairCircumference(''); // Removido do reset
     setStoredHairNotes('');
     setNewlyRegisteredStoredHair(null); // Clear success state
   };
