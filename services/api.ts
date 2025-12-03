@@ -1,4 +1,3 @@
-
 import { 
   Service, Product, Course, Student, Staff, Client, Appointment, Sale, Expense, 
   StaffPayment, RegisterSession, Order, SocialUser, HairQuote, HairCalcConfig, 
@@ -245,19 +244,27 @@ export const api = {
     },
     purchase: async (quote: HairQuote): Promise<void> => {
         const db = getDB();
-        // 1. Update Quote Status
+        // 1. Update Quote Status (already done in updateQuote, but ensure it's 'purchased' here)
         db.hairQuotes = db.hairQuotes.map(q => q.id === quote.id ? quote : q);
         
-        // 2. Generate Expense
+        // 2. Generate Expense (This is the actual purchase from the seller)
         db.expenses.push({
             id: `exp-hair-${Date.now()}`,
-            description: `Compra de Cabelo: ${quote.hairType} (${quote.sellerName})`,
+            description: `Compra de Cabelo: ${quote.hairType} (${quote.sellerName}) - Cód: ${quote.approvalCode}`,
             amount: quote.totalValue,
             date: new Date().toISOString(),
             category: 'Compra de Cabelo',
             businessUnit: 'hair_business'
         });
         saveDB(db);
+    },
+    approveQuote: async (quoteId: string): Promise<void> => { // NEW FUNCTION
+        const db = getDB();
+        const quoteIndex = db.hairQuotes.findIndex(q => q.id === quoteId);
+        if (quoteIndex > -1 && db.hairQuotes[quoteIndex].status === 'purchased') {
+            db.hairQuotes[quoteIndex].status = 'stock'; // Mark as approved and in stock
+            saveDB(db);
+        }
     },
     updateConfig: async (config: HairCalcConfig): Promise<void> => {
         const db = getDB();

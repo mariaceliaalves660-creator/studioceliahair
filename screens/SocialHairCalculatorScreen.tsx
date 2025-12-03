@@ -1,8 +1,6 @@
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { Calculator, Activity, Award, Palette, CheckCircle, Camera, ArrowRight, Ruler, Scissors, Lock, Ban, AlertTriangle, Trophy, Star } from 'lucide-react';
+import { Calculator, Activity, Award, Palette, CheckCircle, Camera, ArrowRight, Ruler, Scissors, Lock, Ban, AlertTriangle, Trophy, Star, MapPin, Copy } from 'lucide-react';
 import { HairQuote } from '../types';
 import { BRAZIL_STATES, AGE_GROUPS } from '../constants';
 
@@ -34,6 +32,7 @@ export const SocialHairCalculatorScreen: React.FC = () => {
   const [purchaseBlocked, setPurchaseBlocked] = useState(false);
   const [blockReason, setBlockReason] = useState('');
   const [errorMsg, setErrorMsg] = useState(''); // Visual error feedback
+  const [generatedApprovalCode, setGeneratedApprovalCode] = useState<string | null>(null); // NEW: Store generated code
 
   // Purchase Form State
   const [sellerName, setSellerName] = useState('');
@@ -67,7 +66,7 @@ export const SocialHairCalculatorScreen: React.FC = () => {
   const isMonth = (d: Date) => d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   
   const myMonthlyTotal = currentUser ? hairQuotes
-    .filter(q => q.evaluatorId === currentUser.id && q.status !== 'quoted' && isMonth(new Date(q.date)))
+    .filter(q => q.evaluatorId === currentUser.id && (q.status === 'stock' || q.status === 'sold') && isMonth(new Date(q.date))) // NEW: Only count 'stock' or 'sold'
     .reduce((acc, q) => acc + q.totalValue, 0) : 0;
   
   const monthlyGoal = hairConfig.monthlyGoal || 1;
@@ -204,9 +203,13 @@ export const SocialHairCalculatorScreen: React.FC = () => {
     
     if (!validateSeller() || !validatePhotos()) return;
 
+    // NEW: Generate unique approval code
+    const code = `HQ-${Date.now().toString().slice(-6)}`;
+    setGeneratedApprovalCode(code);
+
     const updatedQuote: HairQuote = {
       ...currentQuote,
-      status: 'purchased',
+      status: 'purchased', // Status is 'purchased' awaiting admin approval
       sellerName,
       sellerCpf,
       sellerPix,
@@ -216,7 +219,8 @@ export const SocialHairCalculatorScreen: React.FC = () => {
         front: photoFront,
         side: photoSide,
         back: photoBack
-      }
+      },
+      approvalCode: code // NEW: Add approval code
     };
 
     // Use specific context function to also register expense
@@ -231,6 +235,7 @@ export const SocialHairCalculatorScreen: React.FC = () => {
     setCircumference(enabledCircs[0]?.value as number || 0);
     setCondition(enabledConditions[0]?.value as string || '');
     setQuality(enabledQualities[0]?.value as string || '');
+    setHairType(enabledTextures[0]?.value as string || '');
     setColor(enabledColors[0]?.value as string || '');
     
     // Reset Purchase Data
@@ -242,6 +247,7 @@ export const SocialHairCalculatorScreen: React.FC = () => {
     setPhotoFront('');
     setPhotoSide('');
     setPhotoBack('');
+    setGeneratedApprovalCode(null); // NEW: Reset generated code
     
     // Reset Flow
     setCurrentQuote(null);
@@ -258,8 +264,24 @@ export const SocialHairCalculatorScreen: React.FC = () => {
           <CheckCircle size={64} />
         </div>
         <h2 className="text-3xl font-bold text-gray-800 mb-2">Compra Registrada!</h2>
-        <p className="text-gray-500 mb-8 max-w-xs mx-auto">
+        <p className="text-gray-500 mb-4 max-w-xs mx-auto">
           O cabelo foi registrado e os dados enviados para a administração.
+        </p>
+        {generatedApprovalCode && (
+            <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-6 text-green-800 font-bold text-xl flex items-center justify-center">
+                <span className="mr-2">CÓDIGO:</span>
+                <span>{generatedApprovalCode}</span>
+                <button 
+                    onClick={() => navigator.clipboard.writeText(generatedApprovalCode)}
+                    className="ml-3 p-1 rounded-full hover:bg-green-100 text-green-600"
+                    title="Copiar código"
+                >
+                    <Copy size={18}/>
+                </button>
+            </div>
+        )}
+        <p className="text-sm text-gray-600 mb-8 max-w-xs mx-auto">
+            Informe este código à administração para aprovação final da compra.
         </p>
         
         <div className="w-full max-w-sm space-y-3">
@@ -285,8 +307,8 @@ export const SocialHairCalculatorScreen: React.FC = () => {
             <h2 className="text-2xl font-bold flex items-center">
                 <Calculator className="mr-2" /> Calculadora de Cabelo
             </h2>
-            <p className="text-white/80 text-sm mt-1">
-                Avaliador: <strong>{currentUser?.fullName}</strong> ({currentUser?.unit})
+            <p className="text-white/80 text-sm mt-1 flex items-center">
+                <MapPin size={14} className="mr-1"/> Avaliador: <strong>{currentUser?.fullName}</strong> ({currentUser?.address} - {currentUser?.unit})
             </p>
         </div>
         

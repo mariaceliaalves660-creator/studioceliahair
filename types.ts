@@ -263,6 +263,7 @@ export interface HairQuote {
     side?: string;
     back?: string;
   };
+  approvalCode?: string; // NEW: Code for admin to approve
 }
 
 export interface HairPurchaseRules {
@@ -363,6 +364,7 @@ export interface AppContextType extends AppData {
   updateHairQuote: (quote: HairQuote) => void;
   updateHairConfig: (config: HairCalcConfig) => void;
   registerHairPurchase: (quote: HairQuote) => void;
+  approveHairQuote: (quoteId: string) => void; // NEW: For admin approval
 
   // Admin Mgmt
   addAdminUser: (user: AdminUser) => void;

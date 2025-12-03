@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { Scissors, Calendar, MapPin, Filter, TrendingUp, Clock, User, Download, X, Settings, Users, Edit2, Trash2, Save, CheckSquare, Square, DollarSign, PackagePlus, PieChart, ArrowUpRight, ArrowDownRight, Globe, Scale, Copy, PackageCheck, ShoppingBag, BarChart3, Trophy, Medal, Star } from 'lucide-react';
+import { Scissors, Calendar, MapPin, Filter, TrendingUp, Clock, User, Download, X, Settings, Users, Edit2, Trash2, Save, CheckSquare, Square, DollarSign, PackagePlus, PieChart, ArrowUpRight, ArrowDownRight, Globe, Scale, Copy, PackageCheck, ShoppingBag, BarChart3, Trophy, Medal, Star, CheckCircle } from 'lucide-react';
 import { SocialUser, HairOption, HairCalcConfig, HairQuote, UnitType } from '../types';
 
 export const HairBusinessScreen: React.FC = () => {
-  const { hairQuotes, socialUsers, addSocialUser, updateSocialUser, removeSocialUser, hairConfig, updateHairConfig, addProduct, sales, expenses, updateHairQuote, products } = useData();
+  const { hairQuotes, socialUsers, addSocialUser, updateSocialUser, removeSocialUser, hairConfig, updateHairConfig, addProduct, sales, expenses, updateHairQuote, products, approveHairQuote } = useData();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'finance' | 'evaluators' | 'rules'>('dashboard');
 
   // Dashboard State
-  const [hairFilter, setHairFilter] = useState<'all' | 'purchased' | 'quoted'>('purchased');
+  const [hairFilter, setHairFilter] = useState<'all' | 'purchased' | 'quoted' | 'awaiting_approval'>('awaiting_approval'); // NEW: Default to awaiting approval
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
   
   // Product Conversion State
@@ -67,7 +66,8 @@ export const HairBusinessScreen: React.FC = () => {
 
   let hairStats = { day: 0, week: 0, month: 0, year: 0, countDay: 0, countWeek: 0, countMonth: 0, countYear: 0 };
   
-  hairQuotes.filter(q => q.status !== 'quoted').forEach(q => { // Count purchased, stock, sold as valid buys
+  // NEW: Only count 'stock' or 'sold' for purchase stats
+  hairQuotes.filter(q => q.status === 'stock' || q.status === 'sold').forEach(q => { 
     const d = parseDate(q.date);
     const val = q.totalValue;
     if (isToday(d)) { hairStats.day += val; hairStats.countDay++; }
@@ -216,6 +216,14 @@ export const HairBusinessScreen: React.FC = () => {
     setNewProductPrice('');
   };
 
+  // NEW: Handle Admin Approval
+  const handleApproveQuote = (quoteId: string) => {
+      if (confirm("Tem certeza que deseja APROVAR esta compra? Ela será adicionada ao estoque e contará para a meta do avaliador.")) {
+          approveHairQuote(quoteId);
+          alert("Compra aprovada e adicionada ao estoque!");
+      }
+  };
+
 
   // --- RULES EDITOR LOGIC ---
   const handleConfigChange = <K extends keyof HairCalcConfig>(
@@ -347,8 +355,9 @@ export const HairBusinessScreen: React.FC = () => {
   // --- EVALUATOR RANKING LOGIC ---
   const evaluatorRanking = socialUsers.map(user => {
       // Calculate total purchased value this month
+      // NEW: Only count 'stock' or 'sold' for the monthly total
       const monthlyTotal = hairQuotes
-        .filter(q => q.evaluatorId === user.id && q.status !== 'quoted' && isMonth(new Date(q.date)))
+        .filter(q => q.evaluatorId === user.id && (q.status === 'stock' || q.status === 'sold') && isMonth(new Date(q.date)))
         .reduce((acc, q) => acc + q.totalValue, 0);
       
       const goal = hairConfig.monthlyGoal || 1;
@@ -420,18 +429,20 @@ export const HairBusinessScreen: React.FC = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
                     <h4 className="font-bold text-gray-700 text-lg">Registro de Atividades</h4>
                     <div className="flex bg-white rounded-lg p-1 border border-gray-200 shadow-sm w-full md:w-auto overflow-x-auto">
+                        <button onClick={() => setHairFilter('awaiting_approval')} className={`flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-md transition whitespace-nowrap ${hairFilter === 'awaiting_approval' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:bg-gray-50'}`}>Aguardando Aprovação</button>
                         <button onClick={() => setHairFilter('purchased')} className={`flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-md transition whitespace-nowrap ${hairFilter === 'purchased' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:bg-gray-50'}`}>Comprados / Estoque</button>
-                        <button onClick={() => setHairFilter('quoted')} className={`flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-md transition whitespace-nowrap ${hairFilter === 'quoted' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 hover:bg-gray-50'}`}>Apenas Avaliados</button>
-                        <button onClick={() => setHairFilter('all')} className={`flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-md transition whitespace-nowrap ${hairFilter === 'all' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-50'}`}>Todos</button>
+                        <button onClick={() => setHairFilter('quoted')} className={`flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-md transition whitespace-nowrap ${hairFilter === 'quoted' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-50'}`}>Apenas Avaliados</button>
+                        <button onClick={() => setHairFilter('all')} className={`flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-md transition whitespace-nowrap ${hairFilter === 'all' ? 'bg-purple-100 text-purple-700' : 'text-gray-500 hover:bg-gray-50'}`}>Todos</button>
                     </div>
                 </div>
                 
                 <div className="space-y-3">
                     {hairQuotes
                     .filter(q => {
-                        if (hairFilter === 'purchased') return q.status !== 'quoted'; // Show purchased, stock, and sold
+                        if (hairFilter === 'awaiting_approval') return q.status === 'purchased';
+                        if (hairFilter === 'purchased') return q.status === 'stock' || q.status === 'sold'; // Approved and in stock/sold
                         if (hairFilter === 'quoted') return q.status === 'quoted';
-                        return true;
+                        return true; // All
                     })
                     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map(quote => {
@@ -442,12 +453,12 @@ export const HairBusinessScreen: React.FC = () => {
                         let statusColor = 'bg-yellow-100 text-yellow-700';
                         let statusText = 'Avaliado';
                         
-                        if (quote.status === 'purchased') { statusColor = 'bg-green-100 text-green-700'; statusText = 'Comprado'; }
-                        if (quote.status === 'stock') { statusColor = 'bg-blue-100 text-blue-700'; statusText = 'Em Estoque (Aguardando Venda)'; }
+                        if (quote.status === 'purchased') { statusColor = 'bg-orange-100 text-orange-700'; statusText = 'Aguardando Aprovação'; } // NEW status
+                        if (quote.status === 'stock') { statusColor = 'bg-green-100 text-green-700'; statusText = 'Aprovado / Em Estoque'; }
                         if (quote.status === 'sold') { statusColor = 'bg-gray-800 text-white'; statusText = 'Cabelo Vendido'; }
 
                         return (
-                        <div key={quote.id} className={`p-5 border rounded-xl flex flex-col md:flex-row justify-between items-start gap-4 transition hover:shadow-md ${quote.status !== 'quoted' ? 'bg-white border-green-200 shadow-sm' : 'bg-gray-50 border-gray-200 opacity-90'}`}>
+                        <div key={quote.id} className={`p-5 border rounded-xl flex flex-col md:flex-row justify-between items-start gap-4 transition hover:shadow-md ${quote.status === 'purchased' ? 'bg-orange-50 border-orange-200 shadow-sm' : quote.status === 'stock' || quote.status === 'sold' ? 'bg-white border-green-200 shadow-sm' : 'bg-gray-50 border-gray-200 opacity-90'}`}>
                             <div className="flex-1 w-full">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex flex-col">
@@ -474,46 +485,60 @@ export const HairBusinessScreen: React.FC = () => {
                                     <div><strong>Pix:</strong> {quote.sellerPix}</div>
                                     </div>
                                 )}
+                                {quote.approvalCode && ( // NEW: Display approval code
+                                    <div className="mt-3 bg-gray-100 p-3 rounded-lg text-xs border border-gray-200 flex items-center justify-between">
+                                        <span className="font-bold text-gray-700">CÓDIGO: {quote.approvalCode}</span>
+                                        <button 
+                                            onClick={() => navigator.clipboard.writeText(quote.approvalCode || '')}
+                                            className="ml-2 p-1 rounded-full hover:bg-gray-200 text-gray-600"
+                                            title="Copiar código"
+                                        >
+                                            <Copy size={14}/>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             <div className="text-right flex flex-col items-end min-w-[120px] w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
                                 <div className="text-xs text-gray-400 font-bold uppercase mb-1">Valor Total</div>
                                 <div className="font-black text-2xl text-gray-800 mb-3">R$ {quote.totalValue.toFixed(2)}</div>
                                 
-                                {quote.status !== 'quoted' && (
-                                   <div className="flex flex-col gap-2 items-end">
-                                      {quote.photos && (
-                                        <div className="flex gap-2 justify-end">
-                                        {['front', 'side', 'back'].map((key) => {
-                                            const imgUrl = quote.photos?.[key as keyof typeof quote.photos];
-                                            if (!imgUrl) return null;
-                                            return <img key={key} src={imgUrl} onClick={() => setViewingPhoto(imgUrl)} className="w-12 h-12 rounded-lg object-cover border border-gray-200 shadow-sm transition hover:scale-110 cursor-pointer bg-white" title="Clique para ampliar"/>;
-                                        })}
-                                        </div>
-                                      )}
-                                      
-                                      {/* Only show 'Generate Product' if it's Purchased (not yet in stock or sold) */}
-                                      {quote.status === 'purchased' && (
-                                        <button 
-                                            onClick={() => openConversionModal(quote)}
-                                            className="mt-2 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center hover:bg-blue-700 transition"
-                                        >
-                                            <PackagePlus size={14} className="mr-1"/> Gerar Produto
-                                        </button>
-                                      )}
-                                      
-                                      {quote.status === 'stock' && (
-                                         <div className="mt-2 text-xs text-blue-600 font-bold flex items-center bg-blue-50 px-2 py-1 rounded border border-blue-100">
-                                            <PackageCheck size={14} className="mr-1"/> Aguardando Venda
-                                         </div>
-                                      )}
+                                <div className="flex flex-col gap-2 items-end">
+                                   {quote.photos && (
+                                     <div className="flex gap-2 justify-end">
+                                     {['front', 'side', 'back'].map((key) => {
+                                         const imgUrl = quote.photos?.[key as keyof typeof quote.photos];
+                                         if (!imgUrl) return null;
+                                         return <img key={key} src={imgUrl} onClick={() => setViewingPhoto(imgUrl)} className="w-12 h-12 rounded-lg object-cover border border-gray-200 shadow-sm transition hover:scale-110 cursor-pointer bg-white" title="Clique para ampliar"/>;
+                                     })}
+                                     </div>
+                                   )}
+                                   
+                                   {/* Only show 'Approve Purchase' if status is 'purchased' */}
+                                   {quote.status === 'purchased' && (
+                                     <button 
+                                         onClick={() => handleApproveQuote(quote.id)} // NEW: Approve button
+                                         className="mt-2 text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center hover:bg-green-700 transition"
+                                     >
+                                         <CheckCircle size={14} className="mr-1"/> Aprovar Compra
+                                     </button>
+                                   )}
 
-                                      {quote.status === 'sold' && (
-                                         <div className="mt-2 text-xs text-gray-600 font-bold flex items-center bg-gray-100 px-2 py-1 rounded border border-gray-200">
-                                            <ShoppingBag size={14} className="mr-1"/> Venda Finalizada
-                                         </div>
-                                      )}
-                                   </div>
-                                )}
+                                   {/* Only show 'Generate Product' if it's Approved (stock) */}
+                                   {quote.status === 'stock' && (
+                                     <button 
+                                         onClick={() => openConversionModal(quote)}
+                                         className="mt-2 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center hover:bg-blue-700 transition"
+                                     >
+                                         <PackagePlus size={14} className="mr-1"/> Gerar Produto
+                                     </button>
+                                   )}
+                                   
+                                   {quote.status === 'sold' && (
+                                      <div className="mt-2 text-xs text-gray-600 font-bold flex items-center bg-gray-100 px-2 py-1 rounded border border-gray-200">
+                                         <ShoppingBag size={14} className="mr-1"/> Venda Finalizada
+                                      </div>
+                                   )}
+                                </div>
                             </div>
                         </div>
                     )})}
