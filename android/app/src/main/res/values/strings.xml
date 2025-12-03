@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">App loja &amp; studio celia hair</string>
+    <string name="title_activity_main">App loja &amp; studio celia hair</string>
+    <string name="package_name">com.example.applojastudioceliahair</string>
+    <string name="custom_url_scheme">com.example.applojastudioceliahair</string>
+</resources>
