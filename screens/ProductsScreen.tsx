@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { Package, AlertTriangle, Edit2, X, Save, ShoppingCart, Minus, Plus, MapPin, CheckCircle, Camera, Globe, ChevronRight, ShoppingBag, Star, Scissors, ChevronLeft, GraduationCap, Clock, FileText, CheckSquare, Users, LogIn, User, Gift, LogOut, Ticket, Tag, Ban, History, Truck } from 'lucide-react';
+import { Package, AlertTriangle, Edit2, X, Save, ShoppingCart, Minus, Plus, MapPin, CheckCircle, Camera, Globe, ChevronRight, ShoppingBag, Star, Scissors, ChevronLeft, GraduationCap, Clock, FileText, CheckSquare, Users, LogIn, User, Gift, LogOut, Ticket, Tag, Ban, History, Truck, Box } from 'lucide-react';
 import { Product, UnitType, Order, Course, LoyaltyReward } from '../types';
+import { ClientStoredHair } from '../src/components/ClientStoredHair'; // Import ClientStoredHair
 
 export const ProductsScreen: React.FC = () => {
   const { products, courses, updateProduct, viewMode, addOrder, students, loggedInClient, setLoggedInClient, clients, redeemPoints, loyaltyRewards, pointRedemptions, sales } = useData();
@@ -22,6 +23,7 @@ export const ProductsScreen: React.FC = () => {
   const [loginError, setLoginError] = useState(''); // NEW: State for login error message
   const [showMyShopModal, setShowMyShopModal] = useState(false);
   const [redemptionSuccess, setRedemptionSuccess] = useState<string | null>(null);
+  const [showClientStoredHairModal, setShowClientStoredHairModal] = useState(false); // NEW: State for Client Stored Hair Modal
   
   // Product/Course Details Modal State
   const [viewProduct, setViewProduct] = useState<Product | Course | null>(null);
@@ -303,6 +305,13 @@ export const ProductsScreen: React.FC = () => {
                             <div className="text-sm font-bold text-gray-800">{loggedInClient.name}</div>
                             <div className="text-xs text-rose-600 font-bold">{clientPoints} Pontos</div>
                         </div>
+                        <button 
+                            onClick={() => setShowClientStoredHairModal(true)} // NEW: Button for Stored Hair
+                            className="bg-purple-100 text-purple-700 p-2 rounded-full hover:bg-purple-200 transition" 
+                            title="Meu Cabelo Guardado"
+                        >
+                            <Box size={20}/>
+                        </button>
                         <button 
                             onClick={() => setShowMyShopModal(true)}
                             className="bg-rose-100 text-rose-700 p-2 rounded-full hover:bg-rose-200 transition" 
@@ -1060,6 +1069,11 @@ export const ProductsScreen: React.FC = () => {
                   </div>
               </div>
           </div>
+      )}
+
+      {/* CLIENT: Stored Hair Modal */}
+      {showClientStoredHairModal && loggedInClient && (
+        <ClientStoredHair client={loggedInClient} onClose={() => setShowClientStoredHairModal(false)} />
       )}
     </div>
   );
