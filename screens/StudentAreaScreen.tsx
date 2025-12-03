@@ -116,44 +116,56 @@ export const StudentAreaScreen: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
              {/* Player Section */}
              <div className="lg:col-span-2">
-                <div className="bg-black rounded-xl overflow-hidden shadow-lg aspect-video flex items-center justify-center relative">
-                   {currentLesson ? (
-                      (currentLesson.type === 'video' || currentLesson.type === 'upload_video') && currentLesson.url ? (
-                         <iframe 
-                           src={currentLesson.url} 
-                           className="w-full h-full" 
-                           title={currentLesson.title}
-                           frameBorder="0" 
-                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                           allowFullScreen
-                         ></iframe>
-                      ) : currentLesson.type === 'pdf' && currentLesson.url ? (
-                         <div className="text-center p-10 bg-gray-100 w-full h-full flex flex-col items-center justify-center">
-                            <FileText size={48} className="text-red-500 mb-4"/>
-                            <h3 className="font-bold text-gray-800 mb-2">{currentLesson.title}</h3>
-                            <a href={currentLesson.url} target="_blank" rel="noreferrer" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">
-                               Abrir Documento PDF
-                            </a>
-                         </div>
-                      ) : currentLesson.type === 'text' && currentLesson.content ? (
-                         <div className="text-center p-10 bg-white w-full h-full flex flex-col items-center justify-center text-gray-800">
-                            <MessageSquareText size={48} className="text-green-500 mb-4"/>
-                            <h3 className="font-bold text-2xl mb-4">{currentLesson.title}</h3>
-                            <p className="text-lg leading-relaxed max-w-prose">{currentLesson.content}</p>
-                         </div>
-                      ) : (
-                         <div className="text-white/50 flex flex-col items-center">
+                {currentLesson ? (
+                    <>
+                        {(currentLesson.type === 'video' || currentLesson.type === 'upload_video') && currentLesson.url ? (
+                            // Video player container
+                            <div className="bg-black rounded-xl overflow-hidden shadow-lg aspect-video flex items-center justify-center relative">
+                                <iframe
+                                    src={currentLesson.url}
+                                    className="w-full h-full"
+                                    title={currentLesson.title}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                        ) : currentLesson.type === 'pdf' && currentLesson.url ? (
+                            // PDF container
+                            <div className="bg-white rounded-xl overflow-hidden shadow-lg p-6 flex flex-col items-center justify-center text-center min-h-[300px]">
+                                <FileText size={48} className="text-red-500 mb-4"/>
+                                <h3 className="font-bold text-gray-800 mb-2">{currentLesson.title}</h3>
+                                <a href={currentLesson.url} target="_blank" rel="noreferrer" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">
+                                   Abrir Documento PDF
+                                </a>
+                            </div>
+                        ) : currentLesson.type === 'text' && currentLesson.content ? (
+                            // Text content container
+                            <div className="bg-white rounded-xl shadow-lg p-6 text-gray-800 overflow-y-auto max-h-[60vh]">
+                                <h3 className="font-bold text-2xl mb-4">{currentLesson.title}</h3>
+                                <div className="text-lg leading-relaxed prose max-w-none">
+                                    {currentLesson.content}
+                                </div>
+                            </div>
+                        ) : (
+                            // Fallback for unavailable content
+                            <div className="bg-black rounded-xl overflow-hidden shadow-lg aspect-video flex items-center justify-center relative">
+                                <div className="text-white/50 flex flex-col items-center">
+                                    <Play size={48} className="mb-2"/>
+                                    <p>Conteúdo indisponível ou não selecionado.</p>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    // No lesson selected initially
+                    <div className="bg-black rounded-xl overflow-hidden shadow-lg aspect-video flex items-center justify-center relative">
+                        <div className="text-white/50 flex flex-col items-center">
                             <Play size={48} className="mb-2"/>
-                            <p>Conteúdo indisponível ou não selecionado.</p>
-                         </div>
-                      )
-                   ) : (
-                      <div className="text-white/50 flex flex-col items-center">
-                         <Play size={48} className="mb-2"/>
-                         <p>Selecione uma aula para começar</p>
-                      </div>
-                   )}
-                </div>
+                            <p>Selecione uma aula para começar</p>
+                        </div>
+                    </div>
+                )}
                 {currentLesson && (
                    <div className="mt-4 bg-white p-4 rounded-xl shadow-sm">
                       <h1 className="text-xl font-bold text-gray-800">{currentLesson.title}</h1>
