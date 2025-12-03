@@ -73,8 +73,15 @@ export const CoursesManagementScreen: React.FC = () => {
   };
 
   // --- COURSE INFO HANDLERS ---
+  // New function to only clear form states
+  const clearCourseFormStates = () => {
+    setEditingCourse(null);
+    setCrsTitle(''); setCrsWorkload(''); setCrsFormat('Presencial'); setCrsCertificate('');
+    setCrsMaterials(''); setCrsPrice(''); setCrsImage(''); setCrsLimit('');
+  };
+
   const resetCourseForm = () => {
-    setEditingCourse(null); setCrsTitle(''); setCrsWorkload(''); setCrsFormat('Presencial'); setCrsCertificate(''); setCrsMaterials(''); setCrsPrice(''); setCrsImage(''); setCrsLimit('');
+    clearCourseFormStates();
     setView('list');
   };
 
@@ -108,7 +115,8 @@ export const CoursesManagementScreen: React.FC = () => {
         await addCourse({ id: `crs-${Date.now()}`, ...courseData, modules: [] }); // Await add
         alert('Curso criado com sucesso!');
       }
-      resetCourseForm();
+      clearCourseFormStates(); // Clear form after save
+      setView('list'); // Navigate to list after successful save
     } catch (error) {
       console.error("Error saving course:", error);
       alert("Ocorreu um erro ao salvar o curso. Tente novamente.");
@@ -329,13 +337,6 @@ export const CoursesManagementScreen: React.FC = () => {
     setStdCourses(prev => prev.includes(courseId) ? prev.filter(id => id !== courseId) : [...prev, courseId]);
   };
 
-  // NEW LOG: Log courses state when view is 'list'
-  useEffect(() => {
-      if (view === 'list') {
-          console.log("CoursesManagementScreen: Courses in list view:", courses);
-      }
-  }, [view, courses]);
-
   return (
     <div className="p-4 pb-20">
       <h2 className="text-2xl font-bold text-blue-900 mb-6 flex items-center">
@@ -350,7 +351,7 @@ export const CoursesManagementScreen: React.FC = () => {
         <button onClick={() => { setView('list'); setEditingCourse(null); }} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center ${view === 'list' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-50'}`}>
             <BookOpen size={16} className="mr-2"/> Catálogo / Editar
         </button>
-        <button onClick={() => { setView('edit'); setEditingCourse(null); resetCourseForm(); }} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center ${view === 'edit' && !editingCourse?.id ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-50'}`}>
+        <button onClick={() => { clearCourseFormStates(); setView('edit'); }} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center ${view === 'edit' && !editingCourse?.id ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-50'}`}>
             <Plus size={16} className="mr-2"/> Novo Curso
         </button>
         <button onClick={() => { setView('students'); }} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center ${view === 'students' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-50'}`}>
@@ -454,7 +455,7 @@ export const CoursesManagementScreen: React.FC = () => {
                 <input required placeholder="Materiais Inclusos" className="w-full p-2 border rounded" value={crsMaterials} onChange={e => setCrsMaterials(e.target.value)} />
                 
                 <div className="flex gap-2 mt-4">
-                    <button type="button" onClick={resetCourseForm} className="flex-1 py-3 bg-gray-200 text-gray-700 rounded font-bold hover:bg-gray-300">Cancelar</button>
+                    <button type="button" onClick={() => { clearCourseFormStates(); setView('list'); }} className="flex-1 py-3 bg-gray-200 text-gray-700 rounded font-bold hover:bg-gray-300">Cancelar</button>
                     <button className="flex-1 py-3 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 shadow-md">Salvar Curso</button>
                 </div>
             </form>
