@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { ShoppingBag, Plus, Trash2, CheckCircle, Calculator, User, AlertCircle } from 'lucide-react';
@@ -111,7 +109,8 @@ export const SalesScreen: React.FC = () => {
           price: totalPrice, 
           quantity: 1,
           staffId: staffMember.id,
-          staffName: staffMember.name
+          staffName: staffMember.name,
+          category: srv.category // NEW: Add service category
         };
       }
     } else {
@@ -151,7 +150,8 @@ export const SalesScreen: React.FC = () => {
           unit: selectedUnit,
           staffId: staffMember.id,
           staffName: staffMember.name,
-          origin: prod.origin || 'store' // IMPORTANT: Save origin for split reporting
+          origin: prod.origin || 'store', // IMPORTANT: Save origin for split reporting
+          category: prod.category // NEW: Add product category
         };
       }
     }
@@ -380,6 +380,11 @@ export const SalesScreen: React.FC = () => {
                       <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded mr-2">Serviço</span>
                     ) : (
                       <span className="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded mr-2">Produto</span>
+                    )}
+                    {item.category && ( // NEW: Display category if available
+                        <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                            {item.category}
+                        </span>
                     )}
                     {item.type === 'product' && (
                       <span className="font-medium mr-2">

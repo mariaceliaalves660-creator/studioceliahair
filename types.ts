@@ -20,6 +20,7 @@ export interface Service {
   name: string;
   price: number; // Estimated price
   durationMinutes?: number;
+  category?: string; // NEW: Category for services (e.g., 'Corte', 'Manicure')
 }
 
 // NEW: Course Content Structure
@@ -113,6 +114,7 @@ export interface SaleItem {
   staffId: string; // Item-specific staff assignment
   staffName: string; // Denormalized for display
   origin?: 'store' | 'hair_business'; // Item-level financial separation
+  category?: string; // NEW: Specific category for the item (e.g., 'Corte', 'Shampoo')
 }
 
 export interface Sale {

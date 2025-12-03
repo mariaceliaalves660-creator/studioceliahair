@@ -25,6 +25,7 @@ export const ManagerScreen: React.FC = () => {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [srvName, setSrvName] = useState('');
   const [srvPrice, setSrvPrice] = useState('');
+  const [srvCategory, setSrvCategory] = useState(''); // NEW: Service Category
 
   // Products
   const [productFilter, setProductFilter] = useState<'store' | 'hair'>('store');
@@ -115,17 +116,17 @@ export const ManagerScreen: React.FC = () => {
   const handleSaveService = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingService) {
-      updateService({ ...editingService, name: srvName, price: parseFloat(srvPrice) });
+      updateService({ ...editingService, name: srvName, price: parseFloat(srvPrice), category: srvCategory }); // NEW: Save category
       setEditingService(null);
       alert('Serviço atualizado!');
     } else {
-      addService({ id: `s-${Date.now()}`, name: srvName, price: parseFloat(srvPrice) });
+      addService({ id: `s-${Date.now()}`, name: srvName, price: parseFloat(srvPrice), category: srvCategory }); // NEW: Save category
       alert('Serviço adicionado!');
     }
-    setSrvName(''); setSrvPrice('');
+    setSrvName(''); setSrvPrice(''); setSrvCategory(''); // NEW: Clear category
   };
-  const startEditService = (s: Service) => { setEditingService(s); setSrvName(s.name); setSrvPrice(s.price.toString()); };
-  const cancelEditService = () => { setEditingService(null); setSrvName(''); setSrvPrice(''); };
+  const startEditService = (s: Service) => { setEditingService(s); setSrvName(s.name); setSrvPrice(s.price.toString()); setSrvCategory(s.category || ''); }; // NEW: Load category
+  const cancelEditService = () => { setEditingService(null); setSrvName(''); setSrvPrice(''); setSrvCategory(''); }; // NEW: Clear category
 
   // Products
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, setter: (s: string) => void) => {
@@ -284,6 +285,12 @@ export const ManagerScreen: React.FC = () => {
                    value={srvName} 
                    onChange={e => setSrvName(e.target.value)} 
                  />
+                 <input // NEW: Service Category Input
+                   placeholder="Categoria (Ex: Cabelo, Manicure)" 
+                   className="flex-1 p-2 border rounded" 
+                   value={srvCategory} 
+                   onChange={e => setSrvCategory(e.target.value)} 
+                 />
                  <div className="relative w-full md:w-40">
                     <span className="absolute left-3 top-2 text-gray-400">R$</span>
                     <input 
@@ -306,7 +313,10 @@ export const ManagerScreen: React.FC = () => {
               <div className="space-y-2">
                  {services.map(s => (
                     <div key={s.id} className="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50">
-                       <span className="font-medium">{s.name}</span>
+                       <div>
+                           <div className="font-medium">{s.name}</div>
+                           {s.category && <div className="text-xs text-gray-500">{s.category}</div>} {/* NEW: Display category */}
+                       </div>
                        <div className="flex items-center gap-4">
                           <span className="font-bold text-blue-600">R$ {s.price.toFixed(2)}</span>
                           <div className="flex gap-2">

@@ -1,6 +1,3 @@
-
-
-
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, Gift, CheckCircle, ShoppingBag } from 'lucide-react';
@@ -109,6 +106,7 @@ export const ClientsScreen: React.FC = () => {
              <div className="flex items-center">
                  <span className="w-1.5 h-1.5 bg-gray-300 rounded-full mr-2"></span>
                  {item.name} 
+                 {item.category && <span className="text-gray-400 ml-1">({item.category})</span>} {/* NEW: Display category */}
                  {item.type === 'product' && <span className="text-gray-400 ml-1">({item.quantity} {item.unit})</span>}
                  {item.type === 'course' && <span className="text-blue-500 ml-1 font-bold">(Curso)</span>}
              </div>
@@ -438,6 +436,33 @@ export const ClientsScreen: React.FC = () => {
                             })
                         )}
                     </div>
+
+                    <div className="mt-8 border-t pt-4">
+                          <h4 className="font-bold text-gray-600 text-sm uppercase mb-4 flex items-center"><Ticket size={16} className="mr-2"/> Meus Resgates</h4>
+                          <div className="space-y-2">
+                              {pointRedemptions.filter(r => r.clientId === selectedClient.id).length === 0 ? (
+                                  <p className="text-xs text-gray-400 text-center">Você ainda não comprou prêmios.</p>
+                              ) : (
+                                  pointRedemptions
+                                    .filter(r => r.clientId === selectedClient.id)
+                                    .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                    .map((redemption, idx) => (
+                                      <div key={idx} className="flex justify-between items-center text-xs p-3 bg-white rounded border border-gray-100">
+                                          <div>
+                                              <span className="font-bold text-gray-700 block">{redemption.rewardTitle}</span>
+                                              <span className="text-gray-400 flex items-center mt-1"><History size={10} className="mr-1"/> {new Date(redemption.date).toLocaleDateString()}</span>
+                                          </div>
+                                          {redemption.code && (
+                                              <div className="bg-rose-50 text-rose-700 px-2 py-1 rounded font-mono font-bold border border-rose-100 flex items-center">
+                                                  <Tag size={10} className="mr-1"/>
+                                                  {redemption.code}
+                                              </div>
+                                          )}
+                                      </div>
+                                  ))
+                              )}
+                          </div>
+                      </div>
                  </div>
                )}
 

@@ -1,22 +1,20 @@
-
-
 import { Service, Product, Staff, Client, Appointment, Sale, Expense, StaffPayment, RegisterSession, Order, SocialUser, HairQuote, HairCalcConfig, AdminUser, Course, Student, LoyaltyReward, PointRedemption } from './types';
 
 export const INITIAL_SERVICES: Service[] = [
-  { id: 's1', name: 'Retirada de Mega', price: 150 },
-  { id: 's2', name: 'Aplicação de Mega', price: 300 },
-  { id: 's3', name: 'Manutenção de Mega', price: 200 },
-  { id: 's4', name: 'Unha (Mão)', price: 35 },
-  { id: 's5', name: 'Unha (Pé)', price: 35 },
-  { id: 's6', name: 'Cílios Fio a Fio', price: 120 },
-  { id: 's7', name: 'Coloração', price: 150 },
-  { id: 's8', name: 'Descoloração', price: 250 },
-  { id: 's9', name: 'Selagem', price: 180 },
-  { id: 's10', name: 'Botox Capilar', price: 120 },
-  { id: 's11', name: 'Hidratação Profunda', price: 80 },
-  { id: 's12', name: 'Escova', price: 45 },
-  { id: 's13', name: 'Chapinha', price: 30 },
-  { id: 's14', name: 'Penteado', price: 150 },
+  { id: 's1', name: 'Retirada de Mega', price: 150, category: 'Mega Hair' },
+  { id: 's2', name: 'Aplicação de Mega', price: 300, category: 'Mega Hair' },
+  { id: 's3', name: 'Manutenção de Mega', price: 200, category: 'Mega Hair' },
+  { id: 's4', name: 'Unha (Mão)', price: 35, category: 'Manicure' },
+  { id: 's5', name: 'Unha (Pé)', price: 35, category: 'Manicure' },
+  { id: 's6', name: 'Cílios Fio a Fio', price: 120, category: 'Estética' },
+  { id: 's7', name: 'Coloração', price: 150, category: 'Cabelo' },
+  { id: 's8', name: 'Descoloração', price: 250, category: 'Cabelo' },
+  { id: 's9', name: 'Selagem', price: 180, category: 'Cabelo' },
+  { id: 's10', name: 'Botox Capilar', price: 120, category: 'Cabelo' },
+  { id: 's11', name: 'Hidratação Profunda', price: 80, category: 'Cabelo' },
+  { id: 's12', name: 'Escova', price: 45, category: 'Cabelo' },
+  { id: 's13', name: 'Chapinha', price: 30, category: 'Cabelo' },
+  { id: 's14', name: 'Penteado', price: 150, category: 'Cabelo' },
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [

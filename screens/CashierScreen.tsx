@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { DollarSign, TrendingUp, TrendingDown, Wallet, Calendar, Users, PieChart, X, BarChart2, Lock, Unlock, Clock, UserCheck } from 'lucide-react';
@@ -347,7 +345,7 @@ export const CashierScreen: React.FC = () => {
                                 <div className="flex flex-col">
                                     {sale.items.map((item, idx) => (
                                         <span key={idx} className="text-gray-800 font-medium text-xs border-b border-dashed border-gray-100 last:border-0 py-0.5">
-                                            {item.quantity}x {item.name}
+                                            {item.quantity}x {item.name} {item.category && <span className="text-gray-400">({item.category})</span>} {/* NEW: Display category */}
                                         </span>
                                     ))}
                                     <span className="text-gray-400 text-[10px] mt-1">Cliente: {sale.clientName}</span>
