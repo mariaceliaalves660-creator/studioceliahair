@@ -144,8 +144,8 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-rose-50 flex flex-col items-center justify-center p-6 animate-fade-in">
          <div className="w-full max-w-sm bg-white p-8 rounded-3xl shadow-2xl text-center">
-            <h1 className="font-serif text-3xl text-rose-900 mb-2">Célia Hair</h1>
-            <p className="text-gray-500 mb-8">Selecione como deseja acessar</p>
+            <h1 className="font-serif text-3xl text-rose-900 leading-tight">LOJA & STUDIO</h1>
+            <p className="text-lg font-medium text-gray-600 -mt-1 mb-8">Célia Hair</p>
             
             <button 
               onClick={() => { setViewMode('client'); setShowModeSelector(false); setCurrentScreen('home'); }}
