@@ -457,5 +457,32 @@ export const api = {
           update: async (u: AdminUser) => { const db = getDB(); db.adminUsers = db.adminUsers.map(i => i.id === u.id ? u : i); saveDB(db); },
           delete: async (id: string) => { const db = getDB(); db.adminUsers = db.adminUsers.filter(i => i.id !== id); saveDB(db); }
       }
-  }
+  },
+
+  // --- MAINTENANCE ---
+  resetTransactionalData: async (): Promise<void> => {
+    return new Promise((resolve) => {
+      const db = getDB(); // Load current DB state
+
+      // Reset dynamic/transactional data to their initial empty states
+      db.clients = []; 
+      db.appointments = [];
+      db.sales = [];
+      db.expenses = [];
+      db.staffPayments = [];
+      db.registerSessions = [];
+      db.orders = [];
+      db.socialUsers = []; 
+      db.hairQuotes = [];
+      db.pointRedemptions = [];
+      db.storedHair = [];
+
+      // Preserve configuration and core static data (current state)
+      // db.services, db.products, db.courses, db.staff, db.hairConfig, db.loyaltyRewards, db.adminUsers
+      // These are intentionally NOT reset to INITIAL_... to preserve any custom additions/modifications by the admin.
+
+      saveDB(db);
+      resolve();
+    });
+  },
 };

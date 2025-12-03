@@ -405,4 +405,7 @@ export interface AppContextType extends AppData {
   addStoredHair: (hair: StoredHair) => void; // NEW
   updateStoredHair: (hair: StoredHair) => void; // NEW
   removeStoredHair: (id: string) => void; // NEW
+
+  // NEW: Maintenance
+  resetTransactionalData: () => Promise<void>;
 }

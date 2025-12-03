@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../context/DataContext';
-import { ShieldCheck, TrendingUp, DollarSign, History, ArrowUpRight, ArrowDownRight, Camera, Key, Trash2, Edit2, X, Save, Scissors, Users, User, Package, Globe, ShoppingBag, Clock, CheckSquare, Square, GraduationCap, FileText, CheckCircle, Video, Plus, Play, UserPlus, BookOpen, BarChart3, Lock, ChevronDown, ChevronRight, Link as LinkIcon, UserCheck, Gift, Award, Info } from 'lucide-react';
+import { ShieldCheck, TrendingUp, DollarSign, History, ArrowUpRight, ArrowDownRight, Camera, Key, Trash2, Edit2, X, Save, Scissors, Users, User, Package, Globe, ShoppingBag, Clock, CheckSquare, Square, GraduationCap, FileText, CheckCircle, Video, Plus, Play, UserPlus, BookOpen, BarChart3, Lock, ChevronDown, ChevronRight, Link as LinkIcon, UserCheck, Gift, Award, Info, RefreshCcw } from 'lucide-react';
 import { AdminUser, Service, Staff, Client, Product, UnitType, Course, Order, Student, CourseModule, CourseLesson, LoyaltyReward } from '../types';
 
 export const ManagerScreen: React.FC = () => {
@@ -14,7 +14,9 @@ export const ManagerScreen: React.FC = () => {
     sales, expenses, registerSessions, 
     adminUsers, addAdminUser, updateAdminUser, removeAdminUser,
     loyaltyRewards, addLoyaltyReward, removeLoyaltyReward,
-    orders
+    orders,
+    resetTransactionalData, // NEW: Import reset function
+    currentAdmin // NEW: Get current admin for permissions
   } = useData();
   
   const [activeTab, setActiveTab] = useState<'financial' | 'services' | 'products' | 'staff' | 'clients' | 'access' | 'loyalty'>('financial');
@@ -219,6 +221,16 @@ export const ManagerScreen: React.FC = () => {
   };
 
   const togglePermission = (id: string) => { setAdmPermissions(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]); };
+
+  // NEW: Handle Reset Data
+  const handleResetData = () => {
+    if (currentAdmin?.role === 'superadmin' && confirm("ATENÇÃO: Você tem certeza que deseja resetar TODOS os dados transacionais (clientes, vendas, agendamentos, etc.)? Esta ação é irreversível e manterá apenas as configurações de produtos, serviços, cursos, equipe, regras de cabelo, recompensas e administradores.")) {
+      resetTransactionalData();
+      alert("Dados transacionais resetados com sucesso!");
+    } else if (currentAdmin?.role !== 'superadmin') {
+      alert("Apenas Super Administradores podem resetar os dados.");
+    }
+  };
 
   return (
     <div className="p-4 pb-20">
@@ -654,6 +666,22 @@ export const ManagerScreen: React.FC = () => {
                    ))}
                    {adminUsers.filter(u => u.role !== 'superadmin').length === 0 && <p className="text-gray-400 text-center">Nenhum sub-gerente cadastrado.</p>}
                </div>
+
+               {/* NEW: Reset Data Button */}
+               {currentAdmin?.role === 'superadmin' && (
+                 <div className="mt-8 pt-6 border-t border-gray-200">
+                    <h4 className="font-bold text-red-700 mb-4 flex items-center"><RefreshCcw size={20} className="mr-2"/> Resetar Dados da Aplicação</h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                        Esta ação irá apagar todos os dados de clientes, agendamentos, vendas, despesas, etc., mas manterá suas configurações de produtos, serviços, cursos, equipe, regras de cabelo, recompensas e administradores.
+                    </p>
+                    <button 
+                        onClick={handleResetData}
+                        className="w-full bg-red-600 text-white py-3 rounded-xl font-bold shadow-md hover:bg-red-700 transition flex items-center justify-center"
+                    >
+                        <Trash2 size={18} className="mr-2"/> Resetar Dados Transacionais
+                    </button>
+                 </div>
+               )}
            </div>
         )}
       </div>

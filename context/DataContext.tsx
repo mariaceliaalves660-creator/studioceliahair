@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
-  AppContextType, Service, Product, Staff, Client, Appointment, Sale, Expense, StaffPayment, 
-  RegisterSession, Order, ViewMode, SocialUser, HairQuote, HairCalcConfig, AdminUser, Course, 
-  Student, LoyaltyReward, PointRedemption, StoredHair
+  AppContextType, Service, Product, Staff, Client, Appointment, Sale, Expense, 
+  StaffPayment, RegisterSession, Order, ViewMode, SocialUser, HairQuote, HairCalcConfig, 
+  AdminUser, Course, Student, LoyaltyReward, PointRedemption, StoredHair
 } from '../types';
 import { api } from '../services/api';
 import { 
@@ -24,7 +24,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [services, setServices] = useState<Service[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
+  console.log("DataContext: Initial courses state:", courses); // NEW LOG
+  setStudents(data.students);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -173,6 +174,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateStoredHair = async (hair: StoredHair) => { await api.storedHair.update(hair); refreshData(); };
   const removeStoredHair = async (id: string) => { await api.storedHair.delete(id); refreshData(); };
 
+  // NEW: Reset Transactional Data
+  const resetTransactionalData = async () => {
+    await api.resetTransactionalData();
+    refreshData();
+  };
+
   if (loading) {
       return <div className="min-h-screen flex items-center justify-center text-rose-600 font-bold">Carregando Sistema...</div>;
   }
@@ -187,7 +194,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       openRegister, closeRegister, getCurrentSession, addOrder, updateOrder,
       addSocialUser, updateSocialUser, removeSocialUser, addHairQuote, updateHairQuote, updateHairConfig, registerHairPurchase, approveHairQuote,
       addAdminUser, updateAdminUser, removeAdminUser, addLoyaltyReward, removeLoyaltyReward, redeemPoints,
-      addStoredHair, updateStoredHair, removeStoredHair // NEW
+      addStoredHair, updateStoredHair, removeStoredHair,
+      resetTransactionalData // NEW
     }}>
       {children}
     </DataContext.Provider>
