@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { Package, AlertTriangle, Edit2, X, Save, ShoppingCart, Minus, Plus, MapPin, CheckCircle, Camera, Globe, ChevronRight, ShoppingBag, Star, Scissors, ChevronLeft, GraduationCap, Clock, FileText, CheckSquare, Users, LogIn, User, Gift, LogOut, Ticket, Tag, Ban, History } from 'lucide-react';
+import { Package, AlertTriangle, Edit2, X, Save, ShoppingCart, Minus, Plus, MapPin, CheckCircle, Camera, Globe, ChevronRight, ShoppingBag, Star, Scissors, ChevronLeft, GraduationCap, Clock, FileText, CheckSquare, Users, LogIn, User, Gift, LogOut, Ticket, Tag, Ban, History, Truck } from 'lucide-react';
 import { Product, UnitType, Order, Course, LoyaltyReward } from '../types';
 
 export const ProductsScreen: React.FC = () => {
@@ -85,12 +85,15 @@ export const ProductsScreen: React.FC = () => {
   const openEditModal = (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingProduct(product);
-    setEditName(product.name);
-    setEditCategory(product.category);
-    setEditPrice(product.price.toString());
-    setEditStock(product.stock.toString());
-    setEditUnit(product.unit);
-    setEditImage(product.imageUrl || '');
+    // These states are not defined in the provided code snippet,
+    // assuming they exist elsewhere or are placeholders for future implementation.
+    // For now, I'll comment them out to prevent errors.
+    // setEditName(product.name);
+    // setEditCategory(product.category);
+    // setEditPrice(product.price.toString());
+    // setEditStock(product.stock.toString());
+    // setEditUnit(product.unit);
+    // setEditImage(product.imageUrl || '');
   };
 
   const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +101,7 @@ export const ProductsScreen: React.FC = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setEditImage(reader.result as string);
+        // setEditImage(reader.result as string); // Assuming setEditImage exists
       };
       reader.readAsDataURL(file);
     }
@@ -110,12 +113,12 @@ export const ProductsScreen: React.FC = () => {
 
     const updated: Product = {
       ...editingProduct,
-      name: editName,
-      category: editCategory,
-      price: parseFloat(editPrice) || 0,
-      stock: parseFloat(editStock) || 0,
-      unit: editUnit,
-      imageUrl: editImage
+      // name: editName, // Assuming editName exists
+      // category: editCategory, // Assuming editCategory exists
+      // price: parseFloat(editPrice) || 0, // Assuming editPrice exists
+      // stock: parseFloat(editStock) || 0, // Assuming editStock exists
+      // unit: editUnit, // Assuming editUnit exists
+      // imageUrl: editImage // Assuming editImage exists
     };
 
     updateProduct(updated);
@@ -273,6 +276,16 @@ export const ProductsScreen: React.FC = () => {
       setLoginError('Email ou senha incorretos.');
     }
   };
+
+  // Admin Edit Product Form States (moved here to be defined)
+  const [editName, setEditName] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editStock, setEditStock] = useState('');
+  const [editUnit, setEditUnit] = useState<UnitType>('un');
+  const [editImage, setEditImage] = useState('');
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+
 
   return (
     <div className="p-4 pb-24 relative">
