@@ -23,6 +23,9 @@ export const StoredHairScreen: React.FC = () => {
   const [deliveryConfirmError, setDeliveryConfirmError] = useState('');
   const [storedHairToDeliver, setStoredHairToDeliver] = useState<StoredHair | null>(null);
 
+  // Ensure storedHair is always an array for safety
+  const currentStoredHair = storedHair || [];
+
   // --- Handlers ---
   const handleStoredHairImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -278,16 +281,16 @@ export const StoredHairScreen: React.FC = () => {
       </form>
 
       <h4 className="font-bold text-gray-700 mb-4 flex items-center">
-          <Box size={18} className="mr-2 text-purple-500"/> Cabelos Guardados ({storedHair.length})
+          <Box size={18} className="mr-2 text-purple-500"/> Cabelos Guardados ({currentStoredHair.length})
       </h4>
       <div className="space-y-3">
-          {storedHair.length === 0 ? (
+          {currentStoredHair.length === 0 ? (
               <div className="text-center py-10 text-gray-400 bg-white rounded-xl border border-gray-100">
                   <Box size={48} className="mx-auto mb-2 opacity-20"/>
                   <p>Nenhum cabelo guardado registrado.</p>
               </div>
           ) : (
-              storedHair.sort((a,b) => new Date(b.dateStored).getTime() - new Date(a.dateStored).getTime()).map(hair => (
+              currentStoredHair.sort((a,b) => new Date(b.dateStored).getTime() - new Date(a.dateStored).getTime()).map(hair => (
                   <div key={hair.id} className={`bg-white border rounded-xl p-4 shadow-sm flex flex-col md:flex-row justify-between items-start gap-4 ${hair.status === 'delivered' ? 'opacity-70 bg-gray-50 border-gray-100' : 'border-purple-100'}`}>
                       <div className="flex items-start flex-1">
                           {hair.photoUrl && <img src={hair.photoUrl} alt="Cabelo Guardado" className="w-20 h-20 object-cover rounded-lg mr-4 bg-gray-100"/>}
