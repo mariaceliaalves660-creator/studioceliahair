@@ -1,5 +1,3 @@
-
-
 export type UnitType = 'un' | 'kg' | 'g';
 export type ViewMode = 'admin' | 'client' | 'social';
 
@@ -73,11 +71,12 @@ export interface Staff {
 
 export interface Client {
   id: string;
+  user_id?: string; // References auth.users.id if client has a login
   name: string;
   phone: string;
   birthday?: string; // DD/MM
-  email?: string; // NEW: For Login
-  password?: string; // NEW: For Login
+  // email?: string; // Removed, handled by Supabase Auth
+  // password?: string; // Removed, handled by Supabase Auth
   history: Sale[]; // IDs of past sales/appointments
 }
 
@@ -214,24 +213,26 @@ export interface HairCalcConfig {
 
 // NEW: Social User (Evaluator)
 export interface SocialUser {
-  id: string;
+  id: string; // This will be a UUID for the social_users table entry
+  user_id: string; // References auth.users.id
   fullName: string;
   cpf: string;
   address: string;
   unit: string; // e.g. "Unidade Centro"
-  username: string; // For login
-  password: string; // For login
-  customConfig?: HairCalcConfig; // NEW: Individual config per user
+  // username: string; // Removed, handled by Supabase Auth
+  // password: string; // Removed, handled by Supabase Auth
+  customConfig?: HairCalcConfig;
 }
 
 // NEW: Admin User (Management)
 export type AdminRole = 'superadmin' | 'manager';
 
 export interface AdminUser {
-  id: string;
+  id: string; // This will be a UUID for the admin_users table entry
+  user_id: string; // References auth.users.id
   name: string;
-  email: string;
-  password: string;
+  // email: string; // Removed, handled by Supabase Auth
+  // password: string; // Removed, handled by Supabase Auth
   role: AdminRole;
   permissions?: string[]; // List of specific screen IDs the user can access
 }
