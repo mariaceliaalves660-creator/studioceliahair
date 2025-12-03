@@ -16,12 +16,13 @@ export const AppointmentsScreen: React.FC = () => {
 
   // Form State (Used for both Create and Edit)
   const [selectedClientId, setSelectedClientId] = useState('');
-  const [selectedService, setSelectedService] = useState('');
-  const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]); // MODIFIED: Now an array
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]); // MODIFIED: Now an array
+  const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]); 
   const [selectedDateStr, setSelectedDateStr] = useState(''); // YYYY-MM-DD
   const [selectedTime, setSelectedTime] = useState('');
   const [notes, setNotes] = useState('');
-  const [showStaffDropdown, setShowStaffDropdown] = useState(false); // State for dropdown visibility
+  const [showStaffDropdown, setShowStaffDropdown] = useState(false); // State for staff dropdown visibility
+  const [showServiceDropdown, setShowServiceDropdown] = useState(false); // NEW: State for service dropdown visibility
 
   // Calendar Logic
   const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -50,8 +51,8 @@ export const AppointmentsScreen: React.FC = () => {
   const openNewForm = () => {
     setEditingAppointment(null);
     setSelectedClientId('');
-    setSelectedService('');
-    setSelectedStaffIds([]); // Reset to empty array
+    setSelectedServiceIds([]); // Reset to empty array
+    setSelectedStaffIds([]); 
     setSelectedTime('');
     setNotes('');
     // Default to currently selected date on calendar
@@ -64,8 +65,8 @@ export const AppointmentsScreen: React.FC = () => {
   const openEditForm = (apt: Appointment) => {
     setEditingAppointment(apt);
     setSelectedClientId(apt.clientId);
-    setSelectedService(apt.serviceId);
-    setSelectedStaffIds(apt.staffId); // Load array of staff IDs
+    setSelectedServiceIds(apt.serviceIds); // Load array of service IDs
+    setSelectedStaffIds(apt.staffId); 
     setSelectedDateStr(apt.date);
     setSelectedTime(apt.time);
     setNotes(apt.notes || '');
@@ -87,10 +88,25 @@ export const AppointmentsScreen: React.FC = () => {
     });
   };
 
+  const toggleServiceSelection = (serviceId: string) => { // NEW: Service selection handler
+    setSelectedServiceIds(prev => {
+      if (prev.includes(serviceId)) {
+        return prev.filter(id => id !== serviceId);
+      } else {
+        if (prev.length < 5) { // Limit to 5 services
+          return [...prev, serviceId];
+        } else {
+          alert("Você pode selecionar no máximo 5 serviços.");
+          return prev;
+        }
+      }
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDateStr || !selectedService || selectedStaffIds.length === 0 || !selectedTime || !selectedClientId) {
-        alert("Por favor, preencha todos os campos obrigatórios, incluindo pelo menos um profissional.");
+    if (!selectedDateStr || selectedServiceIds.length === 0 || selectedStaffIds.length === 0 || !selectedTime || !selectedClientId) {
+        alert("Por favor, preencha todos os campos obrigatórios, incluindo pelo menos um serviço e um profissional.");
         return;
     }
 
@@ -104,8 +120,8 @@ export const AppointmentsScreen: React.FC = () => {
         clientId: client.id,
         clientName: client.name,
         clientPhone: client.phone,
-        serviceId: selectedService,
-        staffId: selectedStaffIds, // Save array of staff IDs
+        serviceIds: selectedServiceIds, // Save array of service IDs
+        staffId: selectedStaffIds, 
         date: selectedDateStr,
         time: selectedTime,
         notes,
@@ -118,8 +134,8 @@ export const AppointmentsScreen: React.FC = () => {
         clientId: client.id,
         clientName: client.name,
         clientPhone: client.phone,
-        serviceId: selectedService,
-        staffId: selectedStaffIds, // Save array of staff IDs
+        serviceIds: selectedServiceIds, // Save array of service IDs
+        staffId: selectedStaffIds, 
         date: selectedDateStr,
         time: selectedTime,
         notes,
@@ -198,8 +214,8 @@ export const AppointmentsScreen: React.FC = () => {
                 </p>
               ) : (
                 dayAppointments.map(apt => {
-                  const srv = services.find(s => s.id === apt.serviceId);
-                  const assignedStaff = staff.filter(s => apt.staffId.includes(s.id)); // Filter multiple staff
+                  const assignedServices = services.filter(s => apt.serviceIds.includes(s.id)); // Filter multiple services
+                  const assignedStaff = staff.filter(s => apt.staffId.includes(s.id)); 
                   return (
                     <div key={apt.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border-l-4 border-blue-500 hover:bg-blue-50 transition-colors group">
                       <div className="flex items-center flex-1">
@@ -209,7 +225,7 @@ export const AppointmentsScreen: React.FC = () => {
                         <div>
                             <div className="font-bold text-gray-800">{apt.clientName}</div>
                             <div className="text-xs text-blue-600 font-medium bg-blue-100 inline-block px-1.5 py-0.5 rounded mt-1">
-                            {srv?.name}
+                            {assignedServices.length > 0 ? assignedServices.map(s => s.name).join(', ') : 'Nenhum serviço'}
                             </div>
                             <div className="text-xs text-gray-500 mt-1 flex items-center flex-wrap gap-x-2">
                             <Users size={10} className="mr-1" /> 
@@ -255,7 +271,7 @@ export const AppointmentsScreen: React.FC = () => {
                         className="w-full p-3 rounded-lg border bg-white focus:border-blue-500 outline-none" 
                         value={selectedClientId} 
                         onChange={e => setSelectedClientId(e.target.value)}
-                        disabled={!!editingAppointment} // Maybe keep editing client disabled or enabled? Let's leave enabled in case they selected wrong client. But user said "Client can change time/day". Let's enable it.
+                        disabled={!!editingAppointment} 
                     >
                         <option value="">Selecione o Cliente...</option>
                         {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -288,17 +304,35 @@ export const AppointmentsScreen: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Serviço</label>
-                        <select 
-                        required 
-                        className="w-full p-3 rounded-lg border bg-white focus:border-blue-500 outline-none" 
-                        value={selectedService} 
-                        onChange={e => setSelectedService(e.target.value)}
+                    {/* Service Multi-Select */}
+                    <div className="relative">
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Serviço(s) (Máx. 5)</label>
+                        <button 
+                            type="button"
+                            onClick={() => setShowServiceDropdown(!showServiceDropdown)}
+                            className="w-full p-3 rounded-lg border bg-white text-left flex items-center justify-between focus:border-blue-500 outline-none"
                         >
-                        <option value="">Selecione...</option>
-                        {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                        </select>
+                            {selectedServiceIds.length > 0 
+                                ? services.filter(s => selectedServiceIds.includes(s.id)).map(s => s.name).join(', ')
+                                : 'Selecione...'
+                            }
+                            <ChevronDown size={16} className="text-gray-400" />
+                        </button>
+                        {showServiceDropdown && (
+                            <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                                {services.map(s => (
+                                    <label key={s.id} className="flex items-center p-3 hover:bg-blue-50 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedServiceIds.includes(s.id)}
+                                            onChange={() => toggleServiceSelection(s.id)}
+                                            className="mr-2 rounded text-blue-600 focus:ring-blue-500"
+                                        />
+                                        {s.name}
+                                    </label>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     {/* Staff Multi-Select */}
                     <div className="relative">
