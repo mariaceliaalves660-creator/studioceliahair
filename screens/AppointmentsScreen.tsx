@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Scissors, Edit2, Save, X, Users, ChevronDown, CheckCircle, DollarSign, Trash2, Repeat } from 'lucide-react';
 import { Appointment } from '../types';
-import { QuickSaleModal } from '../components/QuickSaleModal'; // Importar o novo modal
+import { QuickSaleModal } from '../src/components/QuickSaleModal'; // Caminho corrigido
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
@@ -68,7 +68,7 @@ export const AppointmentsScreen: React.FC = () => {
   const openEditForm = (apt: Appointment) => {
     setEditingAppointment(apt);
     setSelectedClientId(apt.clientId);
-    setSelectedServiceIds(apt.serviceIds);
+    setSelectedServiceIds(apt.serviceIds); 
     setSelectedStaffIds(apt.staffId); 
     setSelectedDateStr(apt.date);
     setSelectedTime(apt.time);
