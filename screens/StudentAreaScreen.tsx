@@ -1,8 +1,6 @@
-
-
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { GraduationCap, Lock, Mail, Play, FileText, ChevronRight, LogOut, ArrowLeft } from 'lucide-react';
+import { GraduationCap, Lock, Mail, Play, FileText, ChevronRight, LogOut, ArrowLeft, MessageSquareText, Video } from 'lucide-react';
 import { Student, Course } from '../types';
 
 export const StudentAreaScreen: React.FC = () => {
@@ -120,7 +118,7 @@ export const StudentAreaScreen: React.FC = () => {
              <div className="lg:col-span-2">
                 <div className="bg-black rounded-xl overflow-hidden shadow-lg aspect-video flex items-center justify-center relative">
                    {currentLesson ? (
-                      currentLesson.type === 'video' ? (
+                      (currentLesson.type === 'video' || currentLesson.type === 'upload_video') && currentLesson.url ? (
                          <iframe 
                            src={currentLesson.url} 
                            className="w-full h-full" 
@@ -129,13 +127,24 @@ export const StudentAreaScreen: React.FC = () => {
                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                            allowFullScreen
                          ></iframe>
-                      ) : (
+                      ) : currentLesson.type === 'pdf' && currentLesson.url ? (
                          <div className="text-center p-10 bg-gray-100 w-full h-full flex flex-col items-center justify-center">
                             <FileText size={48} className="text-red-500 mb-4"/>
                             <h3 className="font-bold text-gray-800 mb-2">{currentLesson.title}</h3>
                             <a href={currentLesson.url} target="_blank" rel="noreferrer" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">
                                Abrir Documento PDF
                             </a>
+                         </div>
+                      ) : currentLesson.type === 'text' && currentLesson.content ? (
+                         <div className="text-center p-10 bg-white w-full h-full flex flex-col items-center justify-center text-gray-800">
+                            <MessageSquareText size={48} className="text-green-500 mb-4"/>
+                            <h3 className="font-bold text-2xl mb-4">{currentLesson.title}</h3>
+                            <p className="text-lg leading-relaxed max-w-prose">{currentLesson.content}</p>
+                         </div>
+                      ) : (
+                         <div className="text-white/50 flex flex-col items-center">
+                            <Play size={48} className="mb-2"/>
+                            <p>Conteúdo indisponível ou não selecionado.</p>
                          </div>
                       )
                    ) : (
@@ -171,8 +180,8 @@ export const StudentAreaScreen: React.FC = () => {
                                  onClick={() => setSelectedLesson({ moduleId: mod.id, lessonId: lesson.id })}
                                  className={`w-full text-left p-4 hover:bg-blue-50 transition flex items-center ${selectedLesson?.lessonId === lesson.id ? 'bg-blue-50 border-l-4 border-blue-600' : ''}`}
                                >
-                                  <div className={`mr-3 p-2 rounded-full ${lesson.type === 'video' ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'}`}>
-                                     {lesson.type === 'video' ? <Play size={16} fill="currentColor" /> : <FileText size={16} />}
+                                  <div className={`mr-3 p-2 rounded-full ${lesson.type === 'video' || lesson.type === 'upload_video' ? 'bg-blue-100 text-blue-600' : lesson.type === 'pdf' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                     {lesson.type === 'video' || lesson.type === 'upload_video' ? <Play size={16} fill="currentColor" /> : lesson.type === 'pdf' ? <FileText size={16} /> : <MessageSquareText size={16}/>}
                                   </div>
                                   <div>
                                      <div className={`font-medium text-sm ${selectedLesson?.lessonId === lesson.id ? 'text-blue-800' : 'text-gray-700'}`}>

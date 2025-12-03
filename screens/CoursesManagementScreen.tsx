@@ -1,8 +1,8 @@
-
 import React, { useState, useRef } from 'react';
 import { useData } from '../context/DataContext';
-import { TrendingUp, BookOpen, Plus, Users, ShoppingBag, Edit2, Camera, Trash2, Video, Link as LinkIcon, Play, FileText, BarChart3, Save, CheckSquare, Square, Clock } from 'lucide-react';
+import { TrendingUp, BookOpen, Plus, Users, ShoppingBag, Edit2, Camera, Trash2, Video, Link as LinkIcon, Play, FileText, BarChart3, Save, CheckSquare, Square, Clock, Upload, Loader2, MessageSquareText } from 'lucide-react';
 import { Course, CourseModule, CourseLesson, Student, Client, Sale } from '../types';
+import { uploadCourseFile } from '../src/integrations/supabase/storage'; // Importar o serviço de storage
 
 export const CoursesManagementScreen: React.FC = () => {
   const { 
@@ -39,9 +39,13 @@ export const CoursesManagementScreen: React.FC = () => {
   const [isAddingLesson, setIsAddingLesson] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [lessonTitle, setLessonTitle] = useState('');
-  const [lessonType, setLessonType] = useState<'video' | 'pdf'>('video');
+  const [lessonType, setLessonType] = useState<'video' | 'pdf' | 'text' | 'upload_video'>('video'); // Updated type
   const [lessonUrl, setLessonUrl] = useState('');
+  const [lessonContent, setLessonContent] = useState(''); // NEW: For text lessons
   const [lessonDuration, setLessonDuration] = useState('');
+  const [selectedLessonFile, setSelectedLessonFile] = useState<File | null>(null); // For video/pdf upload
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const lessonFileInputRef = useRef<HTMLInputElement>(null);
 
   // Student Form State
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -99,6 +103,8 @@ export const CoursesManagementScreen: React.FC = () => {
     setActiveModuleId(null);
     setEditingModuleId(null);
     setEditingLessonId(null);
+    // Reset lesson form states
+    setLessonTitle(''); setLessonType('video'); setLessonUrl(''); setLessonContent(''); setLessonDuration(''); setSelectedLessonFile(null); setUploadingFile(false);
   };
 
   // --- MODULE ACTIONS ---
@@ -137,8 +143,33 @@ export const CoursesManagementScreen: React.FC = () => {
   };
 
   // --- LESSON ACTIONS ---
-  const handleSaveLesson = () => {
-    if (!editingCourse || !activeModuleId || !lessonTitle || !lessonUrl) return;
+  const handleSaveLesson = async () => { // Made async
+    if (!editingCourse || !activeModuleId || !lessonTitle) return;
+
+    let finalLessonUrl = lessonUrl;
+    let finalLessonContent = lessonContent;
+    let finalFileName = '';
+
+    if (lessonType === 'upload_video' && selectedLessonFile) {
+        setUploadingFile(true);
+        try {
+            finalLessonUrl = await uploadCourseFile(selectedLessonFile, editingCourse.id, activeModuleId, editingLessonId || `les-${Date.now()}`);
+            finalFileName = selectedLessonFile.name;
+            finalLessonContent = ''; // Clear content if uploading video
+        } catch (error) {
+            alert(`Erro ao fazer upload do vídeo: ${error.message}`);
+            setUploadingFile(false);
+            return;
+        } finally {
+            setUploadingFile(false);
+        }
+    } else if (lessonType === 'text') {
+        finalLessonUrl = ''; // Clear URL if it's a text lesson
+        finalFileName = '';
+    } else if (lessonType === 'pdf' || lessonType === 'video') {
+        finalLessonContent = ''; // Clear content if it's a URL-based lesson
+        finalFileName = ''; // Assuming external URLs don't need fileName
+    }
 
     let updatedModules = editingCourse.modules || [];
 
@@ -147,13 +178,13 @@ export const CoursesManagementScreen: React.FC = () => {
             if (mod.id === activeModuleId) {
                 return {
                     ...mod,
-                    lessons: mod.lessons.map(les => les.id === editingLessonId ? { ...les, title: lessonTitle, type: lessonType, url: lessonUrl, duration: lessonDuration } : les)
+                    lessons: mod.lessons.map(les => les.id === editingLessonId ? { ...les, title: lessonTitle, type: lessonType, url: finalLessonUrl, content: finalLessonContent, duration: lessonDuration, fileName: finalFileName } : les)
                 };
             }
             return mod;
         });
     } else {
-        const newLesson: CourseLesson = { id: `les-${Date.now()}`, title: lessonTitle, type: lessonType, url: lessonUrl, duration: lessonDuration };
+        const newLesson: CourseLesson = { id: `les-${Date.now()}`, title: lessonTitle, type: lessonType, url: finalLessonUrl, content: finalLessonContent, duration: lessonDuration, fileName: finalFileName };
         updatedModules = updatedModules.map(mod => {
             if (mod.id === activeModuleId) return { ...mod, lessons: [...mod.lessons, newLesson] };
             return mod;
@@ -164,7 +195,7 @@ export const CoursesManagementScreen: React.FC = () => {
     updateCourse(updatedCourse);
     setEditingCourse(updatedCourse);
     
-    setLessonTitle(''); setLessonUrl(''); setLessonDuration('');
+    setLessonTitle(''); setLessonType('video'); setLessonUrl(''); setLessonContent(''); setLessonDuration(''); setSelectedLessonFile(null);
     setEditingLessonId(null);
     setIsAddingLesson(false);
   };
@@ -172,8 +203,10 @@ export const CoursesManagementScreen: React.FC = () => {
   const startEditLesson = (lesson: CourseLesson) => {
       setLessonTitle(lesson.title);
       setLessonType(lesson.type);
-      setLessonUrl(lesson.url);
+      setLessonUrl(lesson.url || '');
+      setLessonContent(lesson.content || ''); // Load content
       setLessonDuration(lesson.duration || '');
+      setSelectedLessonFile(null); // Clear file input on edit
       setEditingLessonId(lesson.id);
       setIsAddingLesson(true);
   };
@@ -239,16 +272,7 @@ export const CoursesManagementScreen: React.FC = () => {
                     date: new Date().toISOString(),
                     clientId: clientId,
                     clientName: stdName,
-                    items: selectedCourseObjs.map(c => ({
-                        type: 'course',
-                        id: c.id,
-                        name: c.title,
-                        price: c.price,
-                        quantity: 1,
-                        staffId: 'system', // or current admin
-                        staffName: 'Sistema (Matrícula)',
-                        unit: 'un'
-                    })),
+                    customerCpf: stdCpf, // Use stdCpf if available
                     total: totalValue,
                     paymentMethod: 'dinheiro', // Default assumption or add selector
                     createdBy: currentAdmin?.id,
@@ -484,7 +508,7 @@ export const CoursesManagementScreen: React.FC = () => {
                                     <Video size={18} className="mr-2 text-blue-600"/> Aulas do Módulo
                                 </h4>
                                 <button 
-                                    onClick={() => { setIsAddingLesson(true); setEditingLessonId(null); setLessonTitle(''); setLessonUrl(''); setLessonDuration(''); }}
+                                    onClick={() => { setIsAddingLesson(true); setEditingLessonId(null); setLessonTitle(''); setLessonType('video'); setLessonUrl(''); setLessonContent(''); setLessonDuration(''); setSelectedLessonFile(null); }}
                                     className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-700 flex items-center shadow-sm"
                                 >
                                     <Plus size={16} className="mr-2"/> Adicionar Aula
@@ -496,20 +520,71 @@ export const CoursesManagementScreen: React.FC = () => {
                                     <h5 className="font-bold text-xs text-gray-500 uppercase mb-3">{editingLessonId ? 'Editar Aula' : 'Nova Aula'}</h5>
                                     <div className="space-y-3">
                                         <input placeholder="Título da Aula" className="w-full p-2 border rounded text-sm" value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} autoFocus />
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <select className="p-2 border rounded text-sm bg-white" value={lessonType} onChange={e => setLessonType(e.target.value as any)}>
-                                                <option value="video">Vídeo</option>
-                                                <option value="pdf">Documento PDF</option>
+                                        
+                                        {/* Lesson Type Selector */}
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-500 mb-1">Tipo de Conteúdo</label>
+                                            <select 
+                                                className="w-full p-2 border rounded text-sm bg-white" 
+                                                value={lessonType} 
+                                                onChange={e => { setLessonType(e.target.value as any); setLessonUrl(''); setLessonContent(''); setSelectedLessonFile(null); }}
+                                            >
+                                                <option value="video">Vídeo (Link Externo)</option>
+                                                <option value="upload_video">Vídeo (Upload)</option>
+                                                <option value="pdf">Documento PDF (Link Externo)</option>
+                                                <option value="text">Texto</option>
                                             </select>
-                                            <input placeholder="Duração (ex: 10:00)" className="p-2 border rounded text-sm" value={lessonDuration} onChange={e => setLessonDuration(e.target.value)} />
                                         </div>
-                                        <div className="relative">
-                                            <LinkIcon size={14} className="absolute left-3 top-3 text-gray-400"/>
-                                            <input placeholder={lessonType === 'video' ? 'Link do Vídeo (Youtube/Vimeo)' : 'Link do PDF'} className="w-full pl-9 p-2 border rounded text-sm" value={lessonUrl} onChange={e => setLessonUrl(e.target.value)} />
+
+                                        {/* Conditional Inputs based on Lesson Type */}
+                                        {lessonType === 'video' && (
+                                            <div className="relative">
+                                                <LinkIcon size={14} className="absolute left-3 top-3 text-gray-400"/>
+                                                <input required={lessonType === 'video'} placeholder="Link do Vídeo (Youtube/Vimeo)" className="w-full pl-9 p-2 border rounded text-sm" value={lessonUrl} onChange={e => setLessonUrl(e.target.value)} />
+                                            </div>
+                                        )}
+                                        {lessonType === 'upload_video' && (
+                                            <div className="flex items-center gap-2">
+                                                <input 
+                                                    type="file" 
+                                                    ref={lessonFileInputRef}
+                                                    accept="video/*" 
+                                                    onChange={e => setSelectedLessonFile(e.target.files ? e.target.files[0] : null)} 
+                                                    className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                />
+                                                {selectedLessonFile && (
+                                                    <span className="text-xs text-gray-500">{selectedLessonFile.name}</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {lessonType === 'pdf' && (
+                                            <div className="relative">
+                                                <LinkIcon size={14} className="absolute left-3 top-3 text-gray-400"/>
+                                                <input required={lessonType === 'pdf'} placeholder="Link do PDF" className="w-full pl-9 p-2 border rounded text-sm" value={lessonUrl} onChange={e => setLessonUrl(e.target.value)} />
+                                            </div>
+                                        )}
+                                        {lessonType === 'text' && (
+                                            <textarea 
+                                                required={lessonType === 'text'}
+                                                placeholder="Conteúdo da Aula (Texto)" 
+                                                className="w-full p-2 border rounded text-sm resize-y min-h-[100px]" 
+                                                value={lessonContent} 
+                                                onChange={e => setLessonContent(e.target.value)} 
+                                            />
+                                        )}
+
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <input placeholder="Duração (ex: 10:00)" className="p-2 border rounded text-sm" value={lessonDuration} onChange={e => setLessonDuration(e.target.value)} />
                                         </div>
                                         <div className="flex gap-2 justify-end pt-2">
                                             <button onClick={() => setIsAddingLesson(false)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded font-bold text-sm">Cancelar</button>
-                                            <button onClick={handleSaveLesson} className="px-4 py-2 bg-blue-600 text-white rounded font-bold text-sm hover:bg-blue-700">Salvar Aula</button>
+                                            <button 
+                                                onClick={handleSaveLesson} 
+                                                className="px-4 py-2 bg-blue-600 text-white rounded font-bold text-sm hover:bg-blue-700 flex items-center justify-center"
+                                                disabled={uploadingFile || (lessonType === 'upload_video' && !selectedLessonFile) || (lessonType !== 'text' && !lessonUrl && !selectedLessonFile) || (lessonType === 'text' && !lessonContent)}
+                                            >
+                                                {uploadingFile ? <><Loader2 className="animate-spin mr-2"/> Enviando...</> : <><Save size={18} className="mr-2"/> Salvar Aula</>}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -519,14 +594,14 @@ export const CoursesManagementScreen: React.FC = () => {
                                 {editingCourse.modules?.find(m => m.id === activeModuleId)?.lessons.map(lesson => (
                                     <div key={lesson.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-blue-200 hover:shadow-sm transition group">
                                         <div className="flex items-center flex-1 overflow-hidden">
-                                            <div className={`p-2 rounded-full mr-3 shrink-0 ${lesson.type === 'video' ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'}`}>
-                                                {lesson.type === 'video' ? <Play size={16}/> : <FileText size={16}/>}
+                                            <div className={`p-2 rounded-full mr-3 shrink-0 ${lesson.type === 'video' || lesson.type === 'upload_video' ? 'bg-blue-100 text-blue-600' : lesson.type === 'pdf' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                                {lesson.type === 'video' || lesson.type === 'upload_video' ? <Play size={16} fill="currentColor"/> : lesson.type === 'pdf' ? <FileText size={16}/> : <MessageSquareText size={16}/>}
                                             </div>
                                             <div className="min-w-0">
                                                 <div className="font-bold text-sm text-gray-800 truncate">{lesson.title}</div>
                                                 <div className="text-xs text-gray-400 truncate flex items-center">
                                                     {lesson.duration && <span className="mr-2 flex items-center"><Clock size={10} className="mr-1"/> {lesson.duration}</span>}
-                                                    <span className="truncate max-w-[200px]">{lesson.url}</span>
+                                                    {lesson.type === 'text' ? 'Conteúdo de Texto' : lesson.fileName || lesson.url}
                                                 </div>
                                             </div>
                                         </div>

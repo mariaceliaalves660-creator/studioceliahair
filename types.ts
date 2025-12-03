@@ -27,9 +27,11 @@ export interface Service {
 export interface CourseLesson {
   id: string;
   title: string;
-  type: 'video' | 'pdf';
-  url: string; // URL for video or PDF
+  type: 'video' | 'pdf' | 'text' | 'upload_video'; // Added 'text' and 'upload_video'
+  url?: string; // URL for video, PDF, or uploaded video (Supabase Storage URL)
+  content?: string; // NEW: For text-based lessons
   duration?: string; // e.g. "10:00"
+  fileName?: string; // NEW: To store original file name for uploaded videos/pdfs
 }
 
 export interface CourseModule {
