@@ -10,12 +10,13 @@
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
-    "react-dom": "^19.2.0",
-    "react": "^19.2.0",
     "lucide-react": "^0.555.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "recharts": "^3.5.0"
   },
   "devDependencies": {
+    "@dyad-sh/react-vite-component-tagger": "^0.8.0",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
