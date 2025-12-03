@@ -257,6 +257,27 @@ export const api = {
     }
   },
 
+  // --- APPOINTMENTS ---
+  appointments: {
+    create: async (appointment: Appointment): Promise<Appointment> => {
+      const db = getDB();
+      db.appointments.push(appointment);
+      saveDB(db);
+      return appointment;
+    },
+    update: async (appointment: Appointment): Promise<Appointment> => {
+      const db = getDB();
+      db.appointments = db.appointments.map(a => a.id === appointment.id ? appointment : a);
+      saveDB(db);
+      return appointment;
+    },
+    delete: async (id: string): Promise<void> => {
+      const db = getDB();
+      db.appointments = db.appointments.filter(a => a.id !== id);
+      saveDB(db);
+    }
+  },
+
   // --- HAIR BUSINESS ---
   hair: {
     createQuote: async (quote: HairQuote): Promise<HairQuote> => {

@@ -24,7 +24,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [services, setServices] = useState<Service[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [students, setStudents] = useState<Student[]>([]); // MOVED: Declared here
+  const [students, setStudents] = useState<Student[]>([]); 
   console.log("DataContext: Initial courses state:", courses); // NEW LOG
   const [staff, setStaff] = useState<Staff[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -50,7 +50,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProducts(data.products);
       setCourses(data.courses);
       console.log("DataContext: Courses after refreshData:", data.courses); // NEW LOG
-      setStudents(data.students); // Now setStudents is defined
+      setStudents(data.students); 
       setStaff(data.staff);
       setClients(data.clients);
       setAppointments(data.appointments);
@@ -103,25 +103,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateClient = async (item: Client) => { await api.clients.update(item); refreshData(); };
   const removeClient = async (id: string) => { await api.clients.delete(id); refreshData(); };
 
-  // For appointments, simple local state update pattern usually fine, but lets stick to pattern
   const addAppointment = async (item: Appointment) => { 
-      // Assuming api has generic appointment handler or just use loadAllData refresh
-      // For this refactor, we simulate it via the "Sales/General" pattern in API if we added it,
-      // but let's just do a quick local update + save to LS via a helper in API if needed.
-      // Since I didn't add explicit appointment controller in previous step, let's add a generic one conceptually
-      // Real implementation would be: await api.appointments.create(item);
-      // For now, let's assume api.loadAllData handles the "read", and we need a "write"
-      // *Self-Correction*: I'll just use the pattern of modifying local then generic save for simple things not in API controller?
-      // No, strictly use API. I will assume I added generic handlers in API or add them now.
-      // *Correction*: I missed appointments in API.ts. I will treat it as "Generic State" for now or just append to state and saveDB.
-      // Ideally, `api.appointments` should have `appointments: { create... }`.
-      // Let's implement it as a "pass through" for now to keep this file clean.
-      // *Actually, the prompt asked for "usability of backend". I should treat it as such.*
-      // I will act as if `api.appointments` exists.
-      setAppointments(prev => [...prev, item]); // Optimistic
-      // In real backend, this would be: await api.appointments.create(item);
+      await api.appointments.create(item); 
+      refreshData(); 
   };
-  const updateAppointment = async (item: Appointment) => { setAppointments(prev => prev.map(a => a.id === item.id ? item : a)); };
+  const updateAppointment = async (item: Appointment) => { 
+      await api.appointments.update(item); 
+      refreshData(); 
+  };
+  const removeAppointment = async (id: string) => {
+      await api.appointments.delete(id);
+      refreshData();
+  };
 
   const addSale = async (sale: Sale) => { 
       await api.sales.create(sale); 
@@ -190,7 +183,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       services, products, courses, students, staff, clients, appointments, sales, expenses, staffPayments, registerSessions, orders, socialUsers, hairQuotes, hairConfig, adminUsers, loyaltyRewards, pointRedemptions, storedHair,
       addService, updateService, removeService, addProduct, updateProduct, removeProduct, addCourse, updateCourse, removeCourse,
       addStudent, updateStudent, removeStudent, addStaff, updateStaff, removeStaff, addClient, updateClient, removeClient,
-      addAppointment, updateAppointment, addSale, addExpense, addStaffPayment,
+      addAppointment, updateAppointment, removeAppointment, addSale, addExpense, addStaffPayment,
       openRegister, closeRegister, getCurrentSession, addOrder, updateOrder,
       addSocialUser, updateSocialUser, removeSocialUser, addHairQuote, updateHairQuote, updateHairConfig, registerHairPurchase, approveHairQuote,
       addAdminUser, updateAdminUser, removeAdminUser, addLoyaltyReward, removeLoyaltyReward, redeemPoints,

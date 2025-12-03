@@ -104,6 +104,8 @@ export interface Appointment {
   time: string; // HH:mm
   notes?: string;
   status: 'scheduled' | 'completed' | 'cancelled';
+  createdBy?: string; // NEW: ID of the admin/user who created the appointment
+  createdByName?: string; // NEW: Name of the admin/user who created the appointment
 }
 
 export interface SaleItem {

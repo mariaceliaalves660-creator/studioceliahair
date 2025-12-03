@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Scissors, Edit2, Save, X, Users, ChevronDown, CheckCircle, DollarSign, Trash2, Repeat } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Scissors, Edit2, Save, X, Users, ChevronDown, CheckCircle, DollarSign, Trash2, Repeat, UserCheck } from 'lucide-react'; // Importar UserCheck
 import { Appointment } from '../types';
 import { QuickSaleModal } from '../src/components/QuickSaleModal'; // Caminho corrigido
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 export const AppointmentsScreen: React.FC = () => {
-  const { appointments, clients, services, staff, addAppointment, updateAppointment, removeAppointment } = useData();
+  const { appointments, clients, services, staff, addAppointment, updateAppointment, removeAppointment, currentAdmin } = useData();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [showForm, setShowForm] = useState(false);
@@ -106,7 +106,7 @@ export const AppointmentsScreen: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => { // Made async
     e.preventDefault();
     if (!selectedDateStr || selectedServiceIds.length === 0 || selectedStaffIds.length === 0 || !selectedTime || !selectedClientId) {
         alert("Por favor, preencha todos os campos obrigatórios, incluindo pelo menos um serviço e um profissional.");
@@ -128,7 +128,7 @@ export const AppointmentsScreen: React.FC = () => {
         time: selectedTime,
         notes,
       };
-      updateAppointment(updatedApt);
+      await updateAppointment(updatedApt); // Await update
     } else {
       const newAppt: Appointment = {
         id: `apt-${Date.now()}`,
@@ -140,9 +140,11 @@ export const AppointmentsScreen: React.FC = () => {
         date: selectedDateStr,
         time: selectedTime,
         notes,
-        status: 'scheduled'
+        status: 'scheduled',
+        createdBy: currentAdmin?.id, // NEW: Add creator ID
+        createdByName: currentAdmin?.name // NEW: Add creator name
       };
-      addAppointment(newAppt);
+      await addAppointment(newAppt); // Await add
     }
 
     setShowForm(false);
@@ -157,9 +159,9 @@ export const AppointmentsScreen: React.FC = () => {
     openEditForm(apt);
   };
 
-  const handleDeleteAppointment = (aptId: string) => {
+  const handleDeleteAppointment = async (aptId: string) => { // Made async
     if (confirm("Tem certeza que deseja excluir este agendamento?")) {
-      removeAppointment(aptId);
+      await removeAppointment(aptId); // Await removal
       alert("Agendamento excluído com sucesso!");
     }
   };
@@ -169,11 +171,11 @@ export const AppointmentsScreen: React.FC = () => {
     setShowQuickSaleModal(true);
   };
 
-  const handleSaleComplete = (appointmentId: string) => {
+  const handleSaleComplete = async (appointmentId: string) => { // Made async
     // Update appointment status to 'completed' after sale
     const apt = appointments.find(a => a.id === appointmentId);
     if (apt) {
-      updateAppointment({ ...apt, status: 'completed' });
+      await updateAppointment({ ...apt, status: 'completed' }); // Await update
     }
     setShowQuickSaleModal(false);
     setAppointmentForSale(null);
@@ -263,6 +265,11 @@ export const AppointmentsScreen: React.FC = () => {
                                 {apt.status === 'scheduled' ? 'Agendado' : apt.status === 'completed' ? 'Concluído' : 'Cancelado'}
                               </div>
                               {apt.notes && <div className="text-xs text-gray-400 mt-1 italic">"{apt.notes}"</div>}
+                              {apt.createdByName && ( // NEW: Display creator name
+                                  <div className="text-[10px] text-gray-500 flex items-center mt-1">
+                                      <UserCheck size={10} className="mr-1"/> Agendado por: {apt.createdByName}
+                                  </div>
+                              )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
