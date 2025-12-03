@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DataProvider, useData } from './context/DataContext';
 import { HomeScreen } from './screens/HomeScreen';
@@ -15,6 +14,7 @@ import { SocialHairCalculatorScreen } from './screens/SocialHairCalculatorScreen
 import { HairBusinessScreen } from './screens/HairBusinessScreen'; 
 import { StudentAreaScreen } from './screens/StudentAreaScreen'; 
 import { CoursesManagementScreen } from './screens/CoursesManagementScreen';
+import { StoredHairScreen } from './screens/StoredHairScreen'; // NEW: Import StoredHairScreen
 import { Home, ArrowLeft, LogOut, Lock, User, Key, Users, ShoppingBag, GraduationCap } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -199,6 +199,7 @@ const AppContent: React.FC = () => {
       case 'hair-business': return <HairBusinessScreen />;
       case 'student-area': return <StudentAreaScreen />;
       case 'courses-management': return <CoursesManagementScreen />;
+      case 'stored-hair': return <StoredHairScreen />; // NEW: Add StoredHairScreen
       default: return <HomeScreen onNavigate={setCurrentScreen} />;
     }
   };
