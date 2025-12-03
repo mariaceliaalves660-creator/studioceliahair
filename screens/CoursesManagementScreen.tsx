@@ -503,7 +503,7 @@ export const CoursesManagementScreen: React.FC = () => {
                 <div className="lg:col-span-2">
                     {activeModuleId ? (
                         <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm h-full flex flex-col">
-                            <div className="flex justify-between items-center mb-6">
+                            <div className="flex justify-between items-center mb-2">
                                 <h4 className="font-bold text-gray-800 flex items-center">
                                     <Video size={18} className="mr-2 text-blue-600"/> Aulas do Módulo
                                 </h4>
@@ -514,6 +514,10 @@ export const CoursesManagementScreen: React.FC = () => {
                                     <Plus size={16} className="mr-2"/> Adicionar Aula
                                 </button>
                             </div>
+                            {/* NEW DESCRIPTION */}
+                            <p className="text-sm text-gray-500 mb-6">
+                                <span className="font-bold">Correção ortográfica e Padronização textual</span>
+                            </p>
                             
                             {isAddingLesson && (
                                 <div className="mb-6 bg-gray-50 p-5 rounded-xl border border-gray-200 animate-fade-in">
