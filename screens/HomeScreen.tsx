@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Package, Calendar, ShoppingBag, 
-  DollarSign, Users, User, ShieldCheck, Wand2, ArrowRight, Scissors, GraduationCap, BookOpen, Box, Whatsapp, Instagram, MapPin // Importando Box, Whatsapp, Instagram, MapPin
+  DollarSign, Users, User, ShieldCheck, Wand2, ArrowRight, Scissors, GraduationCap, BookOpen, Box, MessageSquare, Instagram, MapPin // Whatsapp substituído por MessageSquare
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
@@ -54,7 +54,7 @@ export const HomeScreen: React.FC<HomeProps> = ({ onNavigate }) => {
                     rel="noopener noreferrer"
                     className="flex flex-col items-center justify-center p-4 rounded-xl bg-green-50 text-green-700 hover:bg-green-100 transition-colors shadow-sm"
                 >
-                    <Whatsapp size={28} className="mb-1" />
+                    <MessageSquare size={28} className="mb-1" /> {/* Whatsapp substituído por MessageSquare */}
                     <span className="text-xs font-medium">WhatsApp</span>
                 </a>
                 <a 
