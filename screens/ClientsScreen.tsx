@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, Gift, CheckCircle, ShoppingBag, Box, Tag, Copy } from 'lucide-react'; // Importar Copy
+import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, Gift, CheckCircle, ShoppingBag, Box, Tag, Copy } from 'lucide-react'; // Importar Gift
 
 // Loyalty Tiers Configuration
 const TIERS = [
@@ -25,6 +25,7 @@ interface ExtendedClient extends Omit<Client, 'history'> {
   currentTier: typeof TIERS[0];
   points: number; // Available Points
   totalPointsAccrued: number; // Lifetime Points
+  isBirthdayMonth: boolean; // NEW: Flag for birthday month
 }
 
 export const ClientsScreen: React.FC = () => {
@@ -33,6 +34,15 @@ export const ClientsScreen: React.FC = () => {
   const [filterTier, setFilterTier] = useState<string>('todos');
   const [rankingMode, setRankingMode] = useState<'general' | 'services' | 'products' | 'courses'>('general');
   const [modalTab, setModalTab] = useState<'history' | 'shop'>('history');
+
+  // Helper to check if it's the client's birthday month
+  const isClientBirthdayMonth = (birthday?: string): boolean => {
+    if (!birthday) return false;
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1; // getMonth() is 0-indexed
+    const [day, month] = birthday.split('/').map(Number);
+    return month === currentMonth;
+  };
 
   // Helper to get all sales and stored hair for a client
   const getClientHistory = (clientId: string) => {
@@ -51,6 +61,7 @@ export const ClientsScreen: React.FC = () => {
   };
 
   const getClientStats = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
     const history = getClientHistory(clientId);
     let totalSpent = 0;
     let spentServices = 0;
@@ -93,7 +104,8 @@ export const ClientsScreen: React.FC = () => {
         history, 
         currentTier, 
         points: availablePoints,
-        totalPointsAccrued: Math.floor(totalSpent)
+        totalPointsAccrued: Math.floor(totalSpent),
+        isBirthdayMonth: isClientBirthdayMonth(client?.birthday) // NEW: Add birthday month flag
     };
   };
 
@@ -149,21 +161,6 @@ export const ClientsScreen: React.FC = () => {
                     {hair.dateDelivered && <p>Entregue em: {new Date(hair.dateDelivered).toLocaleDateString('pt-BR')}</p>}
                     <p>{hair.weight} {hair.weightUnit} • {hair.length} cm</p>
                     {hair.notes && <p className="italic">Obs: {hair.notes}</p>}
-                    {/* REMOVIDO: Exibição do Código de Entrega para o Administrador */}
-                    {/*
-                    {hair.status === 'stored' && hair.deliveryCode && (
-                        <div className="mt-2 bg-gray-100 p-2 rounded-lg text-xs border border-gray-200 flex items-center justify-between">
-                            <span className="font-bold text-gray-700">CÓDIGO: {hair.deliveryCode}</span>
-                            <button 
-                                onClick={() => navigator.clipboard.writeText(hair.deliveryCode || '')}
-                                className="ml-3 p-1 rounded-full hover:bg-gray-200 text-gray-600"
-                                title="Copiar código"
-                            >
-                                <Copy size={14}/>
-                            </button>
-                        </div>
-                    )}
-                    */}
                 </div>
             </div>
         );
@@ -333,7 +330,12 @@ export const ClientsScreen: React.FC = () => {
                        <TierIcon size={20} className={client.currentTier.color.split(' ')[0]} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-800 text-lg leading-tight">{client.name}</h3>
+                      <h3 className="font-bold text-gray-800 text-lg leading-tight flex items-center">
+                        {client.name}
+                        {client.isBirthdayMonth && (
+                            <Gift size={18} className="ml-2 text-pink-500" title="Mês de Aniversário!"/>
+                        )}
+                      </h3>
                       <div className="flex items-center text-gray-500 mt-1 text-xs">
                         <Phone size={12} className="mr-1" />
                         <span>{client.phone}</span>
@@ -376,7 +378,12 @@ export const ClientsScreen: React.FC = () => {
                   <selectedClient.currentTier.icon size={24} className="mr-2 text-white/90" />
                   <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">{selectedClient.currentTier.name}</span>
                </div>
-               <h2 className="text-2xl font-bold">{selectedClient.name}</h2>
+               <h2 className="text-2xl font-bold flex items-center">
+                 {selectedClient.name}
+                 {selectedClient.isBirthdayMonth && (
+                    <Gift size={24} className="ml-3 text-yellow-300" title="Mês de Aniversário!"/>
+                 )}
+               </h2>
                <div className="flex items-center mt-2 space-x-4 text-white/80 text-sm">
                   {selectedClient.birthday ? (
                     <div className="flex items-center bg-black/10 px-2 py-1 rounded">
