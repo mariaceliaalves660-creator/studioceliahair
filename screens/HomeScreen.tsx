@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Package, Calendar, ShoppingBag, 
-  DollarSign, Users, User, ShieldCheck, Wand2, ArrowRight, Scissors, GraduationCap, BookOpen, Box // Importando Box
+  DollarSign, Users, User, ShieldCheck, Wand2, ArrowRight, Scissors, GraduationCap, BookOpen, Box, Whatsapp, Instagram, MapPin // Importando Box, Whatsapp, Instagram, MapPin
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
@@ -43,6 +43,40 @@ export const HomeScreen: React.FC<HomeProps> = ({ onNavigate }) => {
         >
            <Package className="mr-2" /> Catálogo de Produtos e Cursos
         </button>
+
+        {/* NEW: Fale com nossa equipe section */}
+        <div className="w-full max-w-sm mt-8">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">Fale com nossa equipe</h3>
+            <div className="grid grid-cols-3 gap-4">
+                <a 
+                    href="https://wa.me/message/UZMM3WLPPUWRC1" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-4 rounded-xl bg-green-50 text-green-700 hover:bg-green-100 transition-colors shadow-sm"
+                >
+                    <Whatsapp size={28} className="mb-1" />
+                    <span className="text-xs font-medium">WhatsApp</span>
+                </a>
+                <a 
+                    href="https://www.instagram.com/studioceliahairoficial/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-4 rounded-xl bg-pink-50 text-pink-700 hover:bg-pink-100 transition-colors shadow-sm"
+                >
+                    <Instagram size={28} className="mb-1" />
+                    <span className="text-xs font-medium">Instagram</span>
+                </a>
+                <a 
+                    href="https://maps.app.goo.gl/nhyHFPApF8W3WGtU7" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-4 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors shadow-sm"
+                >
+                    <MapPin size={28} className="mb-1" />
+                    <span className="text-xs font-medium">Localização</span>
+                </a>
+            </div>
+        </div>
 
         {/* REMOVIDO: Botão "Testar Simulador IA" */}
         {/*
