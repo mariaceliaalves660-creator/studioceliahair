@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useData } from '../../context/DataContext'; // Caminho corrigido
+import { useData } from '../context/DataContext';
 import { X, ShoppingBag, User, DollarSign, Plus, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Appointment, SaleItem, UnitType, Sale } from '../types';
 

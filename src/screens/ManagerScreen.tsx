@@ -11,7 +11,7 @@ export const ManagerScreen: React.FC = () => {
     students, addStudent, updateStudent, removeStudent,
     staff, addStaff, updateStaff, removeStaff,
     clients, addClient, updateClient, removeClient,
-    sales, expenses, registerSessions, 
+    sales, expenses, cashierSessions, 
     adminUsers, addAdminUser, updateAdminUser, removeAdminUser,
     loyaltyRewards, addLoyaltyReward, removeLoyaltyReward,
     orders,

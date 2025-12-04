@@ -287,16 +287,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: Date.now().toString(),
       openedAt: new Date().toISOString(),
       openedBy: currentAdmin?.name || 'Admin',
-      openingAmount,
+      openingBalance: openingAmount,
       status: 'open'
     };
     setCashierSessions([...cashierSessions, newSession]);
   };
   
-  const closeRegister = (closingAmount: number, withdrawAmount: number) => {
+  const closeRegister = (withdrawAmount: number) => {
     setCashierSessions(cashierSessions.map(s => 
       s.status === 'open' 
-        ? { ...s, status: 'closed', closedAt: new Date().toISOString(), closingAmount, withdrawAmount }
+        ? { ...s, status: 'closed', closedAt: new Date().toISOString(), closedBy: currentAdmin?.name || 'Admin', withdrawAmount }
         : s
     ));
   };
@@ -533,6 +533,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addStoredHair,
     
     // Cashier Sessions
+    cashierSessions,
     getCurrentSession,
     openRegister,
     closeRegister,

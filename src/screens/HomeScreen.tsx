@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   ShoppingBag, Calendar, DollarSign, TrendingUp, Users, UserCheck, 
   Settings, GraduationCap, Scissors, Globe, ShoppingCart,
-  Palette, Grid
+  Palette, Grid, MessageCircle, Instagram
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
@@ -54,6 +54,39 @@ export const HomeScreen: React.FC<HomeProps> = ({ onNavigate }) => {
               </button>
             );
           })}
+        </div>
+
+        {/* Seção de Contato */}
+        <div className="mt-12 bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl shadow-lg p-6">
+          <h2 className="text-xl font-bold text-gray-800 text-center mb-4">
+            Entre em Contato com Nossa Equipe
+          </h2>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://wa.me/message/UZMM3WLPPUWRC1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-3 bg-gradient-to-br from-green-500 to-green-600 text-white px-6 py-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+            >
+              <MessageCircle size={24} />
+              <div className="text-left">
+                <div className="font-bold">WhatsApp</div>
+                <div className="text-sm opacity-90">Atendimento Rápido</div>
+              </div>
+            </a>
+            <a
+              href="https://instagram.com/studioceliahairoficial/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-3 bg-gradient-to-br from-pink-500 to-purple-600 text-white px-6 py-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+            >
+              <Instagram size={24} />
+              <div className="text-left">
+                <div className="font-bold">Instagram</div>
+                <div className="text-sm opacity-90">@studioceliahairoficial</div>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
     </div>
