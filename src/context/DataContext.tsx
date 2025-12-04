@@ -86,7 +86,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     { id: '1', username: 'avaliador1', password: '123456', name: 'Avaliador Teste' }
   ]);
   
-  const [adminUsers] = useState([
+  const [adminUsers, setAdminUsers] = useState([
     { id: '1', email: 'admin@celia.com', password: 'admin123', name: 'Admin Célia', role: 'admin' }
   ]);
   
@@ -298,15 +298,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Admin Users
   const addAdminUser = (admin: any) => {
-    // Not implemented yet
+    setAdminUsers([...adminUsers, { ...admin, id: Date.now().toString() }]);
   };
   
   const updateAdminUser = (admin: any) => {
-    // Not implemented yet
+    setAdminUsers(adminUsers.map(a => a.id === admin.id ? admin : a));
   };
   
   const removeAdminUser = (id: string) => {
-    // Not implemented yet
+    setAdminUsers(adminUsers.filter(a => a.id !== id));
   };
   
   // Loyalty Rewards

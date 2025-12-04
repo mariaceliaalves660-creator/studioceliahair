@@ -24,7 +24,6 @@ const AppContent: React.FC = () => {
   // Setup global navigation function for ManagerScreen quick access
   React.useEffect(() => {
     (window as any).__navigate = (screen: string) => {
-      console.log('Global navigate called:', screen);
       setCurrentScreen(screen);
     };
     return () => {
