@@ -1174,25 +1174,37 @@ export const HairBusinessScreen: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Comprimento (cm)</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                                Comprimento (cm)
+                                <span className="ml-2 text-xs font-normal text-blue-600">📏 40-120cm</span>
+                            </label>
                             <input 
                                 required 
                                 type="number" 
                                 step="1"
+                                min="40"
+                                max="120"
                                 className="w-full p-3 border rounded-lg"
                                 value={editingQuoteData.length}
                                 onChange={e => handleEditQuoteChange('length', parseInt(e.target.value))}
+                                placeholder="Ex: 60"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Espessura (cm)</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                                Espessura / Circunferência (cm)
+                                <span className="ml-2 text-xs font-normal text-purple-600">⭕ 6-16cm</span>
+                            </label>
                             <input 
                                 required 
                                 type="number" 
                                 step="1"
+                                min="6"
+                                max="16"
                                 className="w-full p-3 border rounded-lg"
                                 value={editingQuoteData.circumference}
                                 onChange={e => handleEditQuoteChange('circumference', parseInt(e.target.value))}
+                                placeholder="Ex: 12"
                             />
                         </div>
                     </div>

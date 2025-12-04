@@ -506,7 +506,10 @@ export const SocialHairCalculatorScreen: React.FC = () => {
              {/* 4. LENGTH */}
              <div>
                 <label className="font-bold text-gray-700 flex items-center mb-2 text-sm">
-                  <Ruler size={16} className="mr-1 text-green-500" /> Tamanho (cm)
+                  <Ruler size={16} className="mr-1 text-green-500" /> Comprimento (cm)
+                  <span className="ml-auto text-xs font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                    📏 40-120cm
+                  </span>
                 </label>
                 <select 
                   className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none font-bold"
@@ -524,7 +527,10 @@ export const SocialHairCalculatorScreen: React.FC = () => {
              {/* 5. CIRCUMFERENCE */}
              <div>
                 <label className="font-bold text-gray-700 flex items-center mb-2 text-sm">
-                  <Ruler size={16} className="mr-1 text-orange-500" /> Espessura (cm)
+                  <Ruler size={16} className="mr-1 text-orange-500" /> Espessura / Circunferência (cm)
+                  <span className="ml-auto text-xs font-normal text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                    ⭕ 6-16cm
+                  </span>
                 </label>
                 <select 
                   className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none font-bold"

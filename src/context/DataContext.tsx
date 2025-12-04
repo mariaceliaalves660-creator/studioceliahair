@@ -549,15 +549,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       { value: 'usado', label: 'Usado/Bom', price: 50, enabled: true }
     ],
     lengths: [
-      { value: 30, label: '30cm', price: 50, enabled: true },
-      { value: 40, label: '40cm', price: 80, enabled: true },
-      { value: 50, label: '50cm', price: 120, enabled: true },
-      { value: 60, label: '60cm+', price: 180, enabled: true }
+      { value: 40, label: '40cm', price: 50, enabled: true },
+      { value: 50, label: '50cm', price: 80, enabled: true },
+      { value: 60, label: '60cm', price: 120, enabled: true },
+      { value: 70, label: '70cm', price: 160, enabled: true },
+      { value: 80, label: '80cm', price: 200, enabled: true },
+      { value: 90, label: '90cm', price: 250, enabled: true },
+      { value: 100, label: '100cm', price: 300, enabled: true },
+      { value: 110, label: '110cm', price: 350, enabled: true },
+      { value: 120, label: '120cm', price: 400, enabled: true }
     ],
     circumferences: [
-      { value: 50, label: 'Pequena (50cm)', price: 30, enabled: true },
-      { value: 55, label: 'Média (55cm)', price: 50, enabled: true },
-      { value: 60, label: 'Grande (60cm)', price: 80, enabled: true }
+      { value: 6, label: '6cm (Muito Fina)', price: 20, enabled: true },
+      { value: 8, label: '8cm (Fina)', price: 30, enabled: true },
+      { value: 10, label: '10cm (Média-Fina)', price: 50, enabled: true },
+      { value: 12, label: '12cm (Média)', price: 70, enabled: true },
+      { value: 14, label: '14cm (Média-Grossa)', price: 90, enabled: true },
+      { value: 16, label: '16cm (Grossa)', price: 120, enabled: true }
     ],
     qualities: [
       { value: 'basica', label: 'Básica', price: 0, enabled: true },
