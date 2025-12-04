@@ -8,7 +8,13 @@ const BRAZIL_STATES = ['SP', 'RJ', 'MG', 'BA', 'PR', 'RS', 'PE', 'CE', 'PA', 'SC
 const AGE_GROUPS = ['18-25', '26-35', '36-45', '46-55', '56+'];
 
 export const SocialHairCalculatorScreen: React.FC = () => {
-  const { currentUser, addHairQuote, registerHairPurchase, hairConfig, hairQuotes } = useData();
+  const { currentUser, setCurrentUser, socialUsers, addHairQuote, registerHairPurchase, hairConfig, hairQuotes } = useData();
+
+  // --- LOGIN STATE ---
+  const [showLogin, setShowLogin] = useState(!currentUser);
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   // --- DETERMINE ACTIVE CONFIG (Specific User Config OR Global) ---
   const activeConfig = currentUser?.customConfig || hairConfig;
@@ -231,6 +237,23 @@ export const SocialHairCalculatorScreen: React.FC = () => {
     setStep('success');
   };
 
+  const handleLogin = () => {
+    setLoginError('');
+    const user = socialUsers.find(u => u.username === loginUsername && u.password === loginPassword);
+    if (user) {
+      setCurrentUser(user);
+      setShowLogin(false);
+    } else {
+      setLoginError('Usuário ou senha incorretos');
+    }
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setShowLogin(true);
+    resetForm();
+  };
+
   const resetForm = () => {
     // Reset inputs to defaults (first valid ones)
     setHairType(enabledTextures[0]?.value as string || '');
@@ -259,6 +282,73 @@ export const SocialHairCalculatorScreen: React.FC = () => {
     setErrorMsg('');
     setStep('calc');
   };
+
+  // LOGIN SCREEN
+  if (showLogin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <Lock size={40} className="text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Avaliador/Parceiro</h1>
+            <p className="text-gray-600">Entre com suas credenciais para acessar o sistema</p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Usuário</label>
+              <input
+                type="text"
+                value={loginUsername}
+                onChange={(e) => setLoginUsername(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Digite seu usuário"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Senha</label>
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Digite sua senha"
+              />
+            </div>
+
+            {loginError && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm flex items-center">
+                <AlertTriangle size={18} className="mr-2" />
+                {loginError}
+              </div>
+            )}
+
+            <button
+              onClick={handleLogin}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg transform hover:scale-105"
+            >
+              Entrar
+            </button>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+            <p className="text-sm text-gray-500">
+              💡 <strong>Credenciais de teste:</strong>
+              <br />
+              Usuário: <code className="bg-gray-100 px-2 py-1 rounded">avaliador1</code>
+              <br />
+              Senha: <code className="bg-gray-100 px-2 py-1 rounded">123456</code>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (step === 'success') {
     return (
@@ -306,13 +396,21 @@ export const SocialHairCalculatorScreen: React.FC = () => {
       
       {/* HEADER CARD */}
       <div className="bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl p-6 text-white mb-6 shadow-lg relative overflow-hidden">
-        <div className="relative z-10">
+        <div className="relative z-10 flex justify-between items-start">
+          <div>
             <h2 className="text-2xl font-bold flex items-center">
                 <Calculator className="mr-2" /> Calculadora de Cabelo
             </h2>
             <p className="text-white/80 text-sm mt-1 flex items-center">
-                <MapPin size={14} className="mr-1"/> Avaliador: <strong>{currentUser?.fullName}</strong> ({currentUser?.address} - {currentUser?.unit})
+                <MapPin size={14} className="mr-1"/> Avaliador: <strong>{currentUser?.fullName || currentUser?.name}</strong>
             </p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-bold transition flex items-center"
+          >
+            <Lock size={16} className="mr-1" /> Sair
+          </button>
         </div>
         
         {/* GOAL / PROGRESS WIDGET */}
