@@ -18,10 +18,22 @@ const HistoricoCaixas: React.FC = () => {
     const sessionStart = new Date(session.openedAt);
     const sessionEnd = new Date(session.closedAt);
     
+    console.log('📊 Calculando sessão:', {
+      id: session.id,
+      inicio: sessionStart.toLocaleString(),
+      fim: sessionEnd.toLocaleString()
+    });
+    
     const sessionSales = sales.filter(s => {
       const saleDate = new Date(s.date);
-      return saleDate >= sessionStart && saleDate <= sessionEnd;
+      const isInPeriod = saleDate >= sessionStart && saleDate <= sessionEnd;
+      if (isInPeriod) {
+        console.log('✅ Venda incluída:', { date: saleDate.toLocaleString(), total: s.total });
+      }
+      return isInPeriod;
     });
+
+    console.log(`💰 Total de vendas no período: ${sessionSales.length}`);
 
     const totalIncome = sessionSales.reduce((acc, sale) => {
       const generalItemsTotal = sale.items.reduce((itemAcc: number, item: any) => {
@@ -35,12 +47,14 @@ const HistoricoCaixas: React.FC = () => {
 
     const sessionExpenses = expenses.filter(e => {
       const expDate = new Date(e.date);
-      return expDate >= sessionStart && expDate <= sessionEnd && e.businessUnit === 'salon';
+      return expDate >= sessionStart && expDate <= sessionEnd && (e.businessUnit === 'salon' || !e.businessUnit);
     });
 
     const totalExpenses = sessionExpenses.reduce((acc, e) => acc + e.amount, 0);
     const finalBalance = session.openingBalance + totalIncome - totalExpenses;
     const balanceAfterWithdraw = finalBalance - (session.withdrawAmount || 0);
+
+    console.log('💵 Resultado:', { totalIncome, totalExpenses, finalBalance });
 
     return { totalIncome, totalExpenses, finalBalance, balanceAfterWithdraw };
   };
@@ -231,17 +245,35 @@ export const CashierScreen: React.FC = () => {
   // --- Balance Calculations respecting Session ---
   const sessionStart = new Date(currentSession.openedAt).getTime();
   
+  console.log('🏪 Sessão Atual:', {
+    id: currentSession.id,
+    inicio: new Date(sessionStart).toLocaleString(),
+    saldoInicial: currentSession.openingBalance
+  });
+  
   const salesInSession = sales.filter(s => new Date(s.date).getTime() >= sessionStart);
+  
+  console.log(`💳 Vendas na sessão atual: ${salesInSession.length}`, salesInSession.map(s => ({
+    id: s.id,
+    data: new Date(s.date).toLocaleString(),
+    total: s.total
+  })));
   
   // Expenses should also be filtered to exclude Hair Business expenses
   const expensesInSession = expenses.filter(e => 
-      new Date(e.date).getTime() >= sessionStart && e.businessUnit !== 'hair_business'
+      new Date(e.date).getTime() >= sessionStart && (e.businessUnit === 'salon' || !e.businessUnit)
   );
   
   const totalIncomeInSession = calculateGeneralRevenue(salesInSession);
   const totalExpensesInSession = expensesInSession.reduce((acc, exp) => acc + exp.amount, 0);
   
   const currentBalance = currentSession.openingBalance + totalIncomeInSession - totalExpensesInSession;
+  
+  console.log('💵 Saldo Atual Calculado:', {
+    entradas: totalIncomeInSession,
+    saidas: totalExpensesInSession,
+    saldoAtual: currentBalance
+  });
 
   // --- Staff Performance Ranking (Updated for Item-based attribution) ---
   const staffPerformance = staff.map(member => {
