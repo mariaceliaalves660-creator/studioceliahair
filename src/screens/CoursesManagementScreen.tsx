@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { TrendingUp, BookOpen, Plus, Users, ShoppingBag, Edit2, Camera, Trash2, Video, Link as LinkIcon, Play, FileText, BarChart3, Save, CheckSquare, Square, Clock, Upload, Loader2, MessageSquareText } from 'lucide-react';
+import { TrendingUp, BookOpen, Plus, Users, ShoppingBag, Edit2, Camera, Trash2, Video, Link as LinkIcon, Play, FileText, BarChart3, Save, CheckSquare, Square, Clock, Upload, Loader2, MessageSquareText, X, Image as ImageIcon } from 'lucide-react';
 import { Course, CourseModule, CourseLesson, Student, Client, Sale } from '../types';
 
 export const CoursesManagementScreen: React.FC = () => {
@@ -62,13 +62,15 @@ export const CoursesManagementScreen: React.FC = () => {
   const [isAddingLesson, setIsAddingLesson] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [lessonTitle, setLessonTitle] = useState('');
-  const [lessonType, setLessonType] = useState<'video' | 'pdf' | 'text' | 'upload_video'>('video'); // Updated type
+  const [lessonType, setLessonType] = useState<'video' | 'pdf' | 'text' | 'upload_video' | 'image' | 'rich_text'>('video');
   const [lessonUrl, setLessonUrl] = useState('');
-  const [lessonContent, setLessonContent] = useState(''); // NEW: For text lessons
+  const [lessonContent, setLessonContent] = useState('');
   const [lessonDuration, setLessonDuration] = useState('');
-  const [selectedLessonFile, setSelectedLessonFile] = useState<File | null>(null); // For video/pdf upload
+  const [selectedLessonFile, setSelectedLessonFile] = useState<File | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [lessonImages, setLessonImages] = useState<string[]>([]);
   const lessonFileInputRef = useRef<HTMLInputElement>(null);
+  const lessonImageRef = useRef<HTMLInputElement>(null);
 
   // Student Form State
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -212,19 +214,20 @@ export const CoursesManagementScreen: React.FC = () => {
     });
   };
 
-  const handleSaveLesson = async () => { // Made async
+  const handleSaveLesson = async () => {
     if (!editingCourse || !activeModuleId || !lessonTitle) return;
 
     let finalLessonUrl = lessonUrl;
     let finalLessonContent = lessonContent;
     let finalFileName = '';
+    let finalImages = lessonImages;
 
     if (lessonType === 'upload_video' && selectedLessonFile) {
         setUploadingFile(true);
         try {
             finalLessonUrl = await uploadCourseFile(selectedLessonFile, editingCourse.id, activeModuleId, editingLessonId || `les-${Date.now()}`);
             finalFileName = selectedLessonFile.name;
-            finalLessonContent = ''; // Clear content if uploading video
+            finalLessonContent = '';
         } catch (error: any) {
             alert(`Erro ao fazer upload do vídeo: ${error.message}`);
             setUploadingFile(false);
@@ -232,12 +235,16 @@ export const CoursesManagementScreen: React.FC = () => {
         } finally {
             setUploadingFile(false);
         }
-    } else if (lessonType === 'text') {
-        finalLessonUrl = ''; // Clear URL if it's a text lesson
+    } else if (lessonType === 'text' || lessonType === 'rich_text') {
+        finalLessonUrl = '';
         finalFileName = '';
+    } else if (lessonType === 'image') {
+        finalLessonUrl = '';
+        finalFileName = '';
+        finalLessonContent = '';
     } else if (lessonType === 'pdf' || lessonType === 'video') {
-        finalLessonContent = ''; // Clear content if it's a URL-based lesson
-        finalFileName = ''; // Assuming external URLs don't need fileName
+        finalLessonContent = '';
+        finalFileName = '';
     }
 
     let updatedModules = editingCourse.modules || [];
@@ -247,13 +254,31 @@ export const CoursesManagementScreen: React.FC = () => {
             if (mod.id === activeModuleId) {
                 return {
                     ...mod,
-                    lessons: mod.lessons.map(les => les.id === editingLessonId ? { ...les, title: lessonTitle, type: lessonType, url: finalLessonUrl, content: finalLessonContent, duration: lessonDuration, fileName: finalFileName } : les)
+                    lessons: mod.lessons.map(les => les.id === editingLessonId ? { 
+                      ...les, 
+                      title: lessonTitle, 
+                      type: lessonType, 
+                      url: finalLessonUrl, 
+                      content: finalLessonContent, 
+                      duration: lessonDuration, 
+                      fileName: finalFileName,
+                      images: finalImages 
+                    } : les)
                 };
             }
             return mod;
         });
     } else {
-        const newLesson: CourseLesson = { id: `les-${Date.now()}`, title: lessonTitle, type: lessonType, url: finalLessonUrl, content: finalLessonContent, duration: lessonDuration, fileName: finalFileName };
+        const newLesson: any = { 
+          id: `les-${Date.now()}`, 
+          title: lessonTitle, 
+          type: lessonType, 
+          url: finalLessonUrl, 
+          content: finalLessonContent, 
+          duration: lessonDuration, 
+          fileName: finalFileName,
+          images: finalImages
+        };
         updatedModules = updatedModules.map(mod => {
             if (mod.id === activeModuleId) return { ...mod, lessons: [...mod.lessons, newLesson] };
             return mod;
@@ -264,18 +289,25 @@ export const CoursesManagementScreen: React.FC = () => {
     updateCourse(updatedCourse);
     setEditingCourse(updatedCourse);
     
-    setLessonTitle(''); setLessonType('video'); setLessonUrl(''); setLessonContent(''); setLessonDuration(''); setSelectedLessonFile(null);
+    setLessonTitle(''); 
+    setLessonType('video'); 
+    setLessonUrl(''); 
+    setLessonContent(''); 
+    setLessonDuration(''); 
+    setSelectedLessonFile(null);
+    setLessonImages([]);
     setEditingLessonId(null);
     setIsAddingLesson(false);
   };
 
-  const startEditLesson = (lesson: CourseLesson) => {
+  const startEditLesson = (lesson: any) => {
       setLessonTitle(lesson.title);
       setLessonType(lesson.type);
       setLessonUrl(lesson.url || '');
-      setLessonContent(lesson.content || ''); // Load content
+      setLessonContent(lesson.content || '');
       setLessonDuration(lesson.duration || '');
-      setSelectedLessonFile(null); // Clear file input on edit
+      setLessonImages(lesson.images || []);
+      setSelectedLessonFile(null);
       setEditingLessonId(lesson.id);
       setIsAddingLesson(true);
   };
@@ -615,12 +647,14 @@ export const CoursesManagementScreen: React.FC = () => {
                                             <select 
                                                 className="w-full p-2 border rounded text-sm bg-white" 
                                                 value={lessonType} 
-                                                onChange={e => { setLessonType(e.target.value as any); setLessonUrl(''); setLessonContent(''); setSelectedLessonFile(null); }}
+                                                onChange={e => { setLessonType(e.target.value as any); setLessonUrl(''); setLessonContent(''); setSelectedLessonFile(null); setLessonImages([]); }}
                                             >
-                                                <option value="video">Vídeo (Link Externo)</option>
-                                                <option value="upload_video">Vídeo (Upload)</option>
-                                                <option value="pdf">Documento PDF (Link Externo)</option>
-                                                <option value="text">Texto</option>
+                                                <option value="video">🎥 Vídeo (Link - YouTube/Vimeo)</option>
+                                                <option value="upload_video">📹 Vídeo (Upload Arquivo)</option>
+                                                <option value="pdf">📄 Documento PDF (Link)</option>
+                                                <option value="image">🖼️ Imagens (Galeria)</option>
+                                                <option value="text">📝 Texto Simples</option>
+                                                <option value="rich_text">✍️ Texto com Escrita (Rich Text)</option>
                                             </select>
                                         </div>
 
@@ -654,11 +688,65 @@ export const CoursesManagementScreen: React.FC = () => {
                                         {lessonType === 'text' && (
                                             <textarea 
                                                 required={lessonType === 'text'}
-                                                placeholder="Conteúdo da Aula (Texto)" 
+                                                placeholder="Conteúdo da Aula (Texto Simples)" 
                                                 className="w-full p-2 border rounded text-sm resize-y min-h-[100px]" 
                                                 value={lessonContent} 
                                                 onChange={e => setLessonContent(e.target.value)} 
                                             />
+                                        )}
+                                        {lessonType === 'rich_text' && (
+                                            <div>
+                                                <textarea 
+                                                    required={lessonType === 'rich_text'}
+                                                    placeholder="Conteúdo da Aula com Formatação&#10;&#10;Dica: Use markdown para formatar:&#10;**negrito** _itálico_ [link](url)&#10;# Título ## Subtítulo### Pequeno título" 
+                                                    className="w-full p-3 border rounded text-sm resize-y min-h-[200px] font-mono" 
+                                                    value={lessonContent} 
+                                                    onChange={e => setLessonContent(e.target.value)} 
+                                                />
+                                                <p className="text-xs text-gray-500 mt-1">Suporta formatação básica em Markdown</p>
+                                            </div>
+                                        )}
+                                        {lessonType === 'image' && (
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <label className="block text-xs font-semibold text-gray-500 mb-2">Adicionar Imagens à Galeria</label>
+                                                    <input 
+                                                        type="file" 
+                                                        ref={lessonImageRef}
+                                                        accept="image/*"
+                                                        multiple
+                                                        onChange={(e) => {
+                                                            const files = Array.from(e.target.files || []);
+                                                            Promise.all(files.map(file => {
+                                                                return new Promise<string>((resolve) => {
+                                                                    const reader = new FileReader();
+                                                                    reader.onloadend = () => resolve(reader.result as string);
+                                                                    reader.readAsDataURL(file);
+                                                                });
+                                                            })).then(images => {
+                                                                setLessonImages([...lessonImages, ...images]);
+                                                            });
+                                                        }}
+                                                        className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                                                    />
+                                                </div>
+                                                {lessonImages.length > 0 && (
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        {lessonImages.map((img, idx) => (
+                                                            <div key={idx} className="relative group">
+                                                                <img src={img} alt={`Imagem ${idx + 1}`} className="w-full h-24 object-cover rounded border" />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setLessonImages(lessonImages.filter((_, i) => i !== idx))}
+                                                                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                                                                >
+                                                                    <X size={14} />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
 
                                         <div className="grid grid-cols-1 gap-3">
@@ -669,7 +757,15 @@ export const CoursesManagementScreen: React.FC = () => {
                                             <button 
                                                 onClick={handleSaveLesson} 
                                                 className="px-4 py-2 bg-blue-600 text-white rounded font-bold text-sm hover:bg-blue-700 flex items-center justify-center"
-                                                disabled={uploadingFile || (lessonType === 'upload_video' && !selectedLessonFile) || (lessonType !== 'text' && !lessonUrl && !selectedLessonFile) || (lessonType === 'text' && !lessonContent)}
+                                                disabled={
+                                                    uploadingFile || 
+                                                    (lessonType === 'upload_video' && !selectedLessonFile) || 
+                                                    (lessonType === 'video' && !lessonUrl) ||
+                                                    (lessonType === 'pdf' && !lessonUrl) ||
+                                                    (lessonType === 'text' && !lessonContent) ||
+                                                    (lessonType === 'rich_text' && !lessonContent) ||
+                                                    (lessonType === 'image' && lessonImages.length === 0)
+                                                }
                                             >
                                                 {uploadingFile ? <><Loader2 className="animate-spin mr-2"/> Enviando...</> : <><Save size={18} className="mr-2"/> Salvar Aula</>}
                                             </button>
@@ -682,14 +778,26 @@ export const CoursesManagementScreen: React.FC = () => {
                                 {editingCourse.modules?.find(m => m.id === activeModuleId)?.lessons.map(lesson => (
                                     <div key={lesson.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-blue-200 hover:shadow-sm transition group">
                                         <div className="flex items-center flex-1 overflow-hidden">
-                                            <div className={`p-2 rounded-full mr-3 shrink-0 ${lesson.type === 'video' || lesson.type === 'upload_video' ? 'bg-blue-100 text-blue-600' : lesson.type === 'pdf' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                                                {lesson.type === 'video' || lesson.type === 'upload_video' ? <Play size={16} fill="currentColor"/> : lesson.type === 'pdf' ? <FileText size={16}/> : <MessageSquareText size={16}/>}
+                                            <div className={`p-2 rounded-full mr-3 shrink-0 ${
+                                                lesson.type === 'video' || lesson.type === 'upload_video' ? 'bg-blue-100 text-blue-600' : 
+                                                lesson.type === 'pdf' ? 'bg-red-100 text-red-600' : 
+                                                lesson.type === 'image' ? 'bg-purple-100 text-purple-600' :
+                                                lesson.type === 'rich_text' ? 'bg-orange-100 text-orange-600' :
+                                                'bg-green-100 text-green-600'
+                                            }`}>
+                                                {lesson.type === 'video' || lesson.type === 'upload_video' ? <Play size={16} fill="currentColor"/> : 
+                                                 lesson.type === 'pdf' ? <FileText size={16}/> : 
+                                                 lesson.type === 'image' ? <ImageIcon size={16}/> :
+                                                 <MessageSquareText size={16}/>}
                                             </div>
                                             <div className="min-w-0">
                                                 <div className="font-bold text-sm text-gray-800 truncate">{lesson.title}</div>
                                                 <div className="text-xs text-gray-400 truncate flex items-center">
                                                     {lesson.duration && <span className="mr-2 flex items-center"><Clock size={10} className="mr-1"/> {lesson.duration}</span>}
-                                                    {lesson.type === 'text' ? 'Conteúdo de Texto' : lesson.fileName || lesson.url}
+                                                    {lesson.type === 'text' ? 'Texto Simples' : 
+                                                     lesson.type === 'rich_text' ? 'Texto Formatado' :
+                                                     lesson.type === 'image' ? `${(lesson as any).images?.length || 0} imagens` :
+                                                     (lesson as any).fileName || lesson.url}
                                                 </div>
                                             </div>
                                         </div>
