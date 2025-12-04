@@ -20,12 +20,12 @@ export const SocialHairCalculatorScreen: React.FC = () => {
   const activeConfig = currentUser?.customConfig || hairConfig;
 
   // --- DERIVE ENABLED OPTIONS FROM ACTIVE CONFIG ---
-  const enabledTextures = activeConfig.textures.filter(i => i.enabled);
-  const enabledColors = activeConfig.colors.filter(i => i.enabled);
-  const enabledConditions = activeConfig.conditions.filter(i => i.enabled);
-  const enabledLengths = activeConfig.lengths.filter(i => i.enabled);
-  const enabledCircs = activeConfig.circumferences.filter(i => i.enabled);
-  const enabledQualities = activeConfig.qualities.filter(i => i.enabled);
+  const enabledTextures = activeConfig?.textures?.filter(i => i.enabled) || [];
+  const enabledColors = activeConfig?.colors?.filter(i => i.enabled) || [];
+  const enabledConditions = activeConfig?.conditions?.filter(i => i.enabled) || [];
+  const enabledLengths = activeConfig?.lengths?.filter(i => i.enabled) || [];
+  const enabledCircs = activeConfig?.circumferences?.filter(i => i.enabled) || [];
+  const enabledQualities = activeConfig?.qualities?.filter(i => i.enabled) || [];
 
   // --- STATE ---
   const [hairType, setHairType] = useState(enabledTextures[0]?.value as string || '');
@@ -78,7 +78,7 @@ export const SocialHairCalculatorScreen: React.FC = () => {
     .filter(q => q.evaluatorId === currentUser.id && (q.status === 'stock' || q.status === 'sold') && isMonth(new Date(q.date))) // NEW: Only count 'stock' or 'sold'
     .reduce((acc, q) => acc + q.totalValue, 0) : 0;
   
-  const monthlyGoal = hairConfig.monthlyGoal || 1;
+  const monthlyGoal = hairConfig?.monthlyGoal || 1;
   const progressPercent = Math.min((myMonthlyTotal / monthlyGoal) * 100, 100);
 
 
@@ -105,7 +105,7 @@ export const SocialHairCalculatorScreen: React.FC = () => {
     let isBlocked = false;
     let reason = '';
 
-    if (activeConfig.maxPriceLimit > 0 && total > activeConfig.maxPriceLimit) {
+    if (activeConfig?.maxPriceLimit > 0 && total > activeConfig.maxPriceLimit) {
         isBlocked = true;
         reason = `Valor total (R$ ${total.toFixed(2)}) excede o limite máximo permitido (R$ ${activeConfig.maxPriceLimit.toFixed(2)}).`;
     }
@@ -414,7 +414,7 @@ export const SocialHairCalculatorScreen: React.FC = () => {
         </div>
         
         {/* GOAL / PROGRESS WIDGET */}
-        {hairConfig.monthlyGoal > 0 && (
+        {hairConfig?.monthlyGoal > 0 && (
             <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
                 <div className="flex justify-between items-end mb-2">
                     <div>
