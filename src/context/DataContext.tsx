@@ -1,7 +1,30 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, Course, Client, Student, Appointment, HairQuote, Sale, LoyaltyReward } from '../types';
 
 type ViewMode = 'client' | 'admin' | 'social';
+
+// LocalStorage Helper Functions
+const STORAGE_KEY = 'studioceliahair_data';
+
+const saveToLocalStorage = (key: string, data: any) => {
+  try {
+    const allData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    allData[key] = data;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+  } catch (error) {
+    console.error('Error saving to localStorage:', error);
+  }
+};
+
+const loadFromLocalStorage = (key: string, defaultValue: any) => {
+  try {
+    const allData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    return allData[key] !== undefined ? allData[key] : defaultValue;
+  } catch (error) {
+    console.error('Error loading from localStorage:', error);
+    return defaultValue;
+  }
+};
 
 interface AppContextType {
   // View Mode
@@ -82,9 +105,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentAdmin, setCurrentAdmin] = useState(null);
   const [loggedInClient, setLoggedInClient] = useState(null);
   
-  const [socialUsers, setSocialUsers] = useState([
-    { id: '1', username: 'avaliador1', password: '123456', name: 'Avaliador Teste', fullName: 'Avaliador Teste', cpf: '', address: '', unit: '' }
-  ]);
+  const [socialUsers, setSocialUsers] = useState(() => 
+    loadFromLocalStorage('socialUsers', [
+      { id: '1', username: 'avaliador1', password: '123456', name: 'Avaliador Teste', fullName: 'Avaliador Teste', cpf: '', address: '', unit: '' }
+    ])
+  );
   
   const addSocialUser = (user: any) => {
     setSocialUsers([...socialUsers, { ...user, id: Date.now().toString() }]);
@@ -98,12 +123,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSocialUsers(socialUsers.filter(u => u.id !== id));
   };
   
-  const [adminUsers, setAdminUsers] = useState([
-    { id: '1', email: 'admin@celia.com', password: 'admin123', name: 'Admin Célia', role: 'admin' }
-  ]);
+  const [adminUsers, setAdminUsers] = useState(() =>
+    loadFromLocalStorage('adminUsers', [
+      { id: '1', email: 'admin@celia.com', password: 'admin123', name: 'Admin Célia', role: 'superadmin' }
+    ])
+  );
   
   // Products
-  const [products, setProducts] = useState<Product[]>([
+  const [products, setProducts] = useState<Product[]>(() =>
+    loadFromLocalStorage('products', [
     {
       id: '1',
       name: 'Cabelo Liso Premium',
@@ -128,7 +156,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       location: 'SP',
       specifications: {}
     }
-  ]);
+    ])
+  );
   
   const addProduct = (product: Product) => {
     setProducts([...products, { ...product, id: Date.now().toString() }]);
@@ -143,7 +172,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Courses
-  const [courses, setCourses] = useState<Course[]>([
+  const [courses, setCourses] = useState<Course[]>(() =>
+    loadFromLocalStorage('courses', [
     {
       id: '1',
       title: 'Curso de Aplicação de Cabelo',
@@ -156,7 +186,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       image: '',
       specifications: {}
     }
-  ]);
+    ])
+  );
   
   const addCourse = (course: Course) => {
     setCourses([...courses, { ...course, id: Date.now().toString() }]);
@@ -171,7 +202,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Clients
-  const [clients, setClients] = useState<Client[]>([
+  const [clients, setClients] = useState<Client[]>(() =>
+    loadFromLocalStorage('clients', [
     {
       id: '1',
       name: 'Cliente Teste',
@@ -182,7 +214,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       cpf: '123.456.789-00',
       loyaltyPoints: 100
     }
-  ]);
+    ])
+  );
   
   const addClient = (client: Client) => {
     setClients([...clients, { ...client, id: Date.now().toString() }]);
@@ -197,17 +230,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Students
-  const [students, setStudents] = useState<Student[]>([
-    {
-      id: '1',
-      name: 'Aluno Teste',
-      email: 'aluno@email.com',
-      phone: '11999999999',
-      registrationDate: new Date(),
-      courses: [],
-      progress: {}
-    }
-  ]);
+  const [students, setStudents] = useState<Student[]>(() =>
+    loadFromLocalStorage('students', [
+      {
+        id: '1',
+        name: 'Aluno Teste',
+        email: 'aluno@email.com',
+        phone: '11999999999',
+        registrationDate: new Date(),
+        courses: [],
+        progress: {}
+      }
+    ])
+  );
   
   const addStudent = (student: Student) => {
     setStudents([...students, { ...student, id: Date.now().toString() }]);
@@ -222,7 +257,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Orders
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>(() => loadFromLocalStorage('orders', []));
   
   const addOrder = (order: any) => {
     setOrders([...orders, { ...order, id: Date.now().toString() }]);
@@ -269,14 +304,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Stored Hair
-  const [storedHair, setStoredHair] = useState<any[]>([]);
+  const [storedHair, setStoredHair] = useState<any[]>(() => loadFromLocalStorage('storedHair', []));
   
   const addStoredHair = (hair: any) => {
     setStoredHair([...storedHair, { ...hair, id: Date.now().toString() }]);
   };
   
   // Cashier Sessions
-  const [cashierSessions, setCashierSessions] = useState<any[]>([]);
+  const [cashierSessions, setCashierSessions] = useState<any[]>(() => loadFromLocalStorage('cashierSessions', []));
   
   const getCurrentSession = () => {
     return cashierSessions.find(s => s.status === 'open');
@@ -302,8 +337,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Sales & Expenses
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [expenses, setExpenses] = useState<any[]>([]);
+  const [sales, setSales] = useState<Sale[]>(() => loadFromLocalStorage('sales', []));
+  const [expenses, setExpenses] = useState<any[]>(() => loadFromLocalStorage('expenses', []));
   
   const addSale = (sale: Sale) => {
     setSales([...sales, { ...sale, id: Date.now().toString() }]);
@@ -314,7 +349,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Services
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>(() => loadFromLocalStorage('services', []));
   
   const addService = (service: any) => {
     setServices([...services, { ...service, id: Date.now().toString() }]);
@@ -329,8 +364,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Staff
-  const [staff, setStaff] = useState<any[]>([]);
-  const [staffPayments, setStaffPayments] = useState<any[]>([]);
+  const [staff, setStaff] = useState<any[]>(() => loadFromLocalStorage('staff', []));
+  const [staffPayments, setStaffPayments] = useState<any[]>(() => loadFromLocalStorage('staffPayments', []));
   
   const addStaff = (member: any) => {
     setStaff([...staff, { ...member, id: Date.now().toString() }]);
@@ -384,7 +419,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Appointments
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>(() => loadFromLocalStorage('appointments', []));
   
   const addAppointment = (appointment: Appointment) => {
     setAppointments([...appointments, { ...appointment, id: Date.now().toString() }]);
@@ -399,8 +434,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Hair Quotes
-  const [hairQuotes, setHairQuotes] = useState<HairQuote[]>([]);
-  const [hairConfig, setHairConfig] = useState({
+  const [hairQuotes, setHairQuotes] = useState<HairQuote[]>(() => loadFromLocalStorage('hairQuotes', []));
+  const [hairConfig, setHairConfig] = useState(() => loadFromLocalStorage('hairConfig', {
     textures: [
       { value: 'liso', label: 'Liso', price: 100, enabled: true },
       { value: 'ondulado', label: 'Ondulado', price: 120, enabled: true },
@@ -434,7 +469,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ],
     maxPriceLimit: 1000,
     monthlyGoal: 5000
-  });
+  }));
   
   const addHairQuote = (quote: HairQuote) => {
     setHairQuotes([...hairQuotes, { ...quote, id: Date.now().toString() }]);
@@ -445,20 +480,43 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Loyalty Rewards
-  const [loyaltyRewards, setLoyaltyRewards] = useState<LoyaltyReward[]>([
-    {
-      id: '1',
-      name: 'Desconto 10%',
-      pointsRequired: 100,
-      description: 'Desconto de 10% em próxima compra'
-    }
-  ]);
+  const [loyaltyRewards, setLoyaltyRewards] = useState<LoyaltyReward[]>(() => 
+    loadFromLocalStorage('loyaltyRewards', [
+      {
+        id: '1',
+        name: 'Desconto 10%',
+        pointsRequired: 100,
+        description: 'Desconto de 10% em próxima compra'
+      }
+    ])
+  );
   
-  const [pointRedemptions, setPointRedemptions] = useState<any[]>([]);
+  const [pointRedemptions, setPointRedemptions] = useState<any[]>(() => loadFromLocalStorage('pointRedemptions', []));
   
   const redeemPoints = (clientId: string, points: number) => {
     setPointRedemptions([...pointRedemptions, { clientId, points, date: new Date() }]);
   };
+
+  // Auto-save to localStorage whenever data changes
+  useEffect(() => { saveToLocalStorage('products', products); }, [products]);
+  useEffect(() => { saveToLocalStorage('courses', courses); }, [courses]);
+  useEffect(() => { saveToLocalStorage('clients', clients); }, [clients]);
+  useEffect(() => { saveToLocalStorage('students', students); }, [students]);
+  useEffect(() => { saveToLocalStorage('appointments', appointments); }, [appointments]);
+  useEffect(() => { saveToLocalStorage('sales', sales); }, [sales]);
+  useEffect(() => { saveToLocalStorage('expenses', expenses); }, [expenses]);
+  useEffect(() => { saveToLocalStorage('services', services); }, [services]);
+  useEffect(() => { saveToLocalStorage('staff', staff); }, [staff]);
+  useEffect(() => { saveToLocalStorage('orders', orders); }, [orders]);
+  useEffect(() => { saveToLocalStorage('socialUsers', socialUsers); }, [socialUsers]);
+  useEffect(() => { saveToLocalStorage('adminUsers', adminUsers); }, [adminUsers]);
+  useEffect(() => { saveToLocalStorage('hairQuotes', hairQuotes); }, [hairQuotes]);
+  useEffect(() => { saveToLocalStorage('hairConfig', hairConfig); }, [hairConfig]);
+  useEffect(() => { saveToLocalStorage('loyaltyRewards', loyaltyRewards); }, [loyaltyRewards]);
+  useEffect(() => { saveToLocalStorage('pointRedemptions', pointRedemptions); }, [pointRedemptions]);
+  useEffect(() => { saveToLocalStorage('cashierSessions', cashierSessions); }, [cashierSessions]);
+  useEffect(() => { saveToLocalStorage('staffPayments', staffPayments); }, [staffPayments]);
+  useEffect(() => { saveToLocalStorage('storedHair', storedHair); }, [storedHair]);
 
   const value: AppContextType = {
     // View Mode
