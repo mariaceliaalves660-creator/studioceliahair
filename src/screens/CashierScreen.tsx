@@ -497,10 +497,16 @@ export const CashierScreen: React.FC = () => {
                              <td className="p-3">
                                 <div className="flex flex-col">
                                     {sale.items.map((item, idx) => (
-                                        <span key={idx} className="text-gray-800 font-medium text-xs border-b border-dashed border-gray-100 last:border-0 py-0.5">
-                                            {item.quantity}x {item.name} {item.category && <span className="text-gray-400">({item.category})</span>}
-                                            {item.staffName && <span className="text-gray-500 ml-1">({item.staffName})</span>} {/* Added staffName */}
-                                        </span>
+                                        <div key={idx} className="text-gray-800 font-medium text-xs border-b border-dashed border-gray-100 last:border-0 py-1 flex items-center gap-1.5 flex-wrap">
+                                            {item.type === 'service' ? (
+                                                <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-bold">SERVIÇO</span>
+                                            ) : (
+                                                <span className="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded text-[10px] font-bold">PRODUTO</span>
+                                            )}
+                                            <span>{item.quantity}x {item.name}</span>
+                                            {item.category && <span className="text-gray-400">({item.category})</span>}
+                                            {item.staffName && <span className="text-gray-500 ml-1">({item.staffName})</span>}
+                                        </div>
                                     ))}
                                     <div className="flex items-center gap-2 mt-1">
                                       <span className="text-gray-400 text-[10px]">Cliente: {sale.clientName}</span>

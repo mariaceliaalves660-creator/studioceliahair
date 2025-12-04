@@ -41,6 +41,8 @@ export const ProductsScreen: React.FC = () => {
   // Checkout Form
   const [clientName, setClientName] = useState('');
   const [clientWhatsapp, setClientWhatsapp] = useState('');
+  const [clientDDD, setClientDDD] = useState('');
+  const [clientPhoneNumber, setClientPhoneNumber] = useState('');
   const [clientCpf, setClientCpf] = useState(''); // NEW CPF State
   const [deliveryType, setDeliveryType] = useState<'pickup' | 'delivery'>('pickup');
   const [address, setAddress] = useState('');
@@ -50,6 +52,12 @@ export const ProductsScreen: React.FC = () => {
       if (loggedInClient) {
           setClientName(loggedInClient.name);
           setClientWhatsapp(loggedInClient.phone);
+          // Extract DDD and number from phone if possible
+          const phone = loggedInClient.phone.replace(/\D/g, '');
+          if (phone.length >= 10) {
+              setClientDDD(phone.substring(0, 2));
+              setClientPhoneNumber(phone.substring(2));
+          }
       }
   }, [loggedInClient]);
 
@@ -219,11 +227,14 @@ export const ProductsScreen: React.FC = () => {
     e.preventDefault();
     if (cart.length === 0) return;
 
+    // Combine DDD and phone number
+    const fullPhone = clientDDD + clientPhoneNumber;
+
     const newOrder: Order = {
       id: `ord-${Date.now()}`,
       date: new Date().toISOString(),
       customerName: clientName,
-      customerWhatsapp: clientWhatsapp,
+      customerWhatsapp: fullPhone,
       customerCpf: clientCpf,
       clientId: loggedInClient?.id,
       deliveryType,
@@ -254,6 +265,8 @@ export const ProductsScreen: React.FC = () => {
     if (!loggedInClient) {
         setClientName('');
         setClientWhatsapp('');
+        setClientDDD('');
+        setClientPhoneNumber('');
         setClientCpf('');
         setAddress('');
     }
@@ -773,14 +786,30 @@ export const ProductsScreen: React.FC = () => {
                               onChange={e => setClientName(e.target.value)}
                               disabled={!!loggedInClient}
                            />
-                           <input 
-                              required 
-                              placeholder="WhatsApp (com DDD)" 
-                              className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-rose-300"
-                              value={clientWhatsapp}
-                              onChange={e => setClientWhatsapp(e.target.value)}
-                              disabled={!!loggedInClient}
-                           />
+                           <div className="space-y-2">
+                              <label className="text-sm font-semibold text-gray-700">Celular (Obrigatório)</label>
+                              <div className="grid grid-cols-3 gap-2">
+                                 <input 
+                                    required 
+                                    placeholder="DDD" 
+                                    maxLength={2}
+                                    className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-rose-300 text-center font-bold"
+                                    value={clientDDD}
+                                    onChange={e => setClientDDD(e.target.value.replace(/\D/g, ''))}
+                                    disabled={!!loggedInClient}
+                                 />
+                                 <input 
+                                    required 
+                                    placeholder="Número" 
+                                    maxLength={9}
+                                    className="col-span-2 w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-rose-300 font-bold"
+                                    value={clientPhoneNumber}
+                                    onChange={e => setClientPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                                    disabled={!!loggedInClient}
+                                 />
+                              </div>
+                              <p className="text-xs text-gray-500">Exemplo: DDD: 11 | Número: 987654321</p>
+                           </div>
                            <input 
                               required 
                               placeholder="CPF" 
