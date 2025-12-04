@@ -6,10 +6,14 @@ import { Users, Trash2, X, DollarSign, Calendar, TrendingUp, History, CheckCircl
 import { Staff } from '../types';
 
 export const StaffScreen: React.FC = () => {
-  const { staff, removeStaff, sales, staffPayments, addStaffPayment, addExpense } = useData();
+  const { staff, addStaff, removeStaff, sales, staffPayments, addStaffPayment, addExpense } = useData();
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [showPayModal, setShowPayModal] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newRole, setNewRole] = useState('');
+  const [newComm, setNewComm] = useState('');
   
   // Helpers
   const parseDate = (dateStr: string) => new Date(dateStr);
@@ -114,11 +118,36 @@ export const StaffScreen: React.FC = () => {
     return role || 'Colaborador';
   };
 
+  const handleAddStaff = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName || !newRole || !newComm) return;
+    
+    addStaff({
+      id: `st-${Date.now()}`,
+      name: newName,
+      role: newRole,
+      commissionRate: parseFloat(newComm)
+    });
+    
+    setNewName('');
+    setNewRole('');
+    setNewComm('');
+    setShowAddModal(false);
+  };
+
   return (
     <div className="p-4 pb-20">
-      <h2 className="text-2xl font-bold text-indigo-900 mb-6 flex items-center">
-        <Users className="mr-2" /> Equipe e Comissões
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-indigo-900 flex items-center">
+          <Users className="mr-2" /> Equipe e Comissões
+        </h2>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition flex items-center"
+        >
+          <Users className="mr-2" size={18} /> Adicionar
+        </button>
+      </div>
 
       {/* Staff List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -276,6 +305,46 @@ export const StaffScreen: React.FC = () => {
                   <button onClick={() => setShowPayModal(false)} className="flex-1 py-3 bg-gray-100 rounded-lg font-bold text-gray-600">Cancelar</button>
                   <button onClick={handlePayment} className="flex-1 py-3 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700">Confirmar</button>
                </div>
+            </div>
+         </div>
+      )}
+
+      {/* Add Staff Modal */}
+      {showAddModal && (
+         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-sm rounded-xl p-6 shadow-2xl animate-fade-in">
+               <h3 className="font-bold text-lg text-gray-800 mb-4">Adicionar Colaborador</h3>
+               <form onSubmit={handleAddStaff}>
+                  <input 
+                     type="text" 
+                     placeholder="Nome completo"
+                     required
+                     className="w-full p-3 border rounded-lg mb-3"
+                     value={newName}
+                     onChange={e => setNewName(e.target.value)}
+                  />
+                  <input 
+                     type="text" 
+                     placeholder="Cargo (ex: Cabeleireira, Manicure)"
+                     required
+                     className="w-full p-3 border rounded-lg mb-3"
+                     value={newRole}
+                     onChange={e => setNewRole(e.target.value)}
+                  />
+                  <input 
+                     type="number" 
+                     step="0.01"
+                     placeholder="Taxa de comissão (%)"
+                     required
+                     className="w-full p-3 border rounded-lg mb-4"
+                     value={newComm}
+                     onChange={e => setNewComm(e.target.value)}
+                  />
+                  <div className="flex gap-3">
+                     <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-3 bg-gray-100 rounded-lg font-bold text-gray-600">Cancelar</button>
+                     <button type="submit" className="flex-1 py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700">Adicionar</button>
+                  </div>
+               </form>
             </div>
          </div>
       )}

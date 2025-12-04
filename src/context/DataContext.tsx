@@ -8,6 +8,9 @@ interface AppContextType {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
   
+  // Navigation
+  navigateToScreen?: (screen: string) => void;
+  
   // Authentication
   socialUsers: any[];
   setCurrentUser: (user: any) => void;
@@ -213,6 +216,39 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setOrders([...orders, { ...order, id: Date.now().toString() }]);
   };
   
+  // Stored Hair
+  const [storedHair, setStoredHair] = useState<any[]>([]);
+  
+  const addStoredHair = (hair: any) => {
+    setStoredHair([...storedHair, { ...hair, id: Date.now().toString() }]);
+  };
+  
+  // Cashier Sessions
+  const [cashierSessions, setCashierSessions] = useState<any[]>([]);
+  
+  const getCurrentSession = () => {
+    return cashierSessions.find(s => s.status === 'open');
+  };
+  
+  const openRegister = (openingAmount: number) => {
+    const newSession = {
+      id: Date.now().toString(),
+      openedAt: new Date().toISOString(),
+      openedBy: currentAdmin?.name || 'Admin',
+      openingAmount,
+      status: 'open'
+    };
+    setCashierSessions([...cashierSessions, newSession]);
+  };
+  
+  const closeRegister = (closingAmount: number, withdrawAmount: number) => {
+    setCashierSessions(cashierSessions.map(s => 
+      s.status === 'open' 
+        ? { ...s, status: 'closed', closedAt: new Date().toISOString(), closingAmount, withdrawAmount }
+        : s
+    ));
+  };
+  
   // Sales & Expenses
   const [sales, setSales] = useState<Sale[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -242,6 +278,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Staff
   const [staff, setStaff] = useState<any[]>([]);
+  const [staffPayments, setStaffPayments] = useState<any[]>([]);
   
   const addStaff = (member: any) => {
     setStaff([...staff, { ...member, id: Date.now().toString() }]);
@@ -253,6 +290,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const removeStaff = (id: string) => {
     setStaff(staff.filter(s => s.id !== id));
+  };
+  
+  const addStaffPayment = (payment: any) => {
+    setStaffPayments([...staffPayments, { ...payment, id: Date.now().toString() }]);
   };
   
   // Admin Users
@@ -427,6 +468,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addStaff,
     updateStaff,
     removeStaff,
+    staffPayments,
+    addStaffPayment,
+    
+    // Stored Hair
+    storedHair,
+    addStoredHair,
+    
+    // Cashier Sessions
+    getCurrentSession,
+    openRegister,
+    closeRegister,
     
     // Admin
     addAdminUser,

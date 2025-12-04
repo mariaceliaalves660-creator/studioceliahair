@@ -344,7 +344,7 @@ export const ManagerScreen: React.FC = () => {
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <button
-            onClick={() => window.location.href = '/#/cashier'}
+            onClick={() => (window as any).__navigate?.('cashier')}
             className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
           >
             <DollarSign className="w-5 h-5 text-green-600 mb-1" />
@@ -352,7 +352,7 @@ export const ManagerScreen: React.FC = () => {
             <div className="text-[10px] text-gray-500">PDV / Vendas</div>
           </button>
           <button
-            onClick={() => window.location.href = '/#/appointments'}
+            onClick={() => (window as any).__navigate?.('appointments')}
             className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
           >
             <Clock className="w-5 h-5 text-blue-600 mb-1" />
@@ -360,7 +360,7 @@ export const ManagerScreen: React.FC = () => {
             <div className="text-[10px] text-gray-500">Calendário</div>
           </button>
           <button
-            onClick={() => window.location.href = '/#/courses-management'}
+            onClick={() => (window as any).__navigate?.('courses-management')}
             className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
           >
             <GraduationCap className="w-5 h-5 text-purple-600 mb-1" />
@@ -368,7 +368,7 @@ export const ManagerScreen: React.FC = () => {
             <div className="text-[10px] text-gray-500">Gestão Completa</div>
           </button>
           <button
-            onClick={() => window.location.href = '/#/stored-hair'}
+            onClick={() => (window as any).__navigate?.('stored-hair')}
             className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
           >
             <Scissors className="w-5 h-5 text-pink-600 mb-1" />
@@ -376,7 +376,7 @@ export const ManagerScreen: React.FC = () => {
             <div className="text-[10px] text-gray-500">Estoque Guardado</div>
           </button>
           <button
-            onClick={() => window.location.href = '/#/hair-business'}
+            onClick={() => (window as any).__navigate?.('hair-business')}
             className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
           >
             <Globe className="w-5 h-5 text-indigo-600 mb-1" />
@@ -384,7 +384,7 @@ export const ManagerScreen: React.FC = () => {
             <div className="text-[10px] text-gray-500">Compra/Venda</div>
           </button>
           <button
-            onClick={() => window.location.href = '/#/orders'}
+            onClick={() => (window as any).__navigate?.('orders')}
             className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
           >
             <ShoppingBag className="w-5 h-5 text-orange-600 mb-1" />
@@ -392,7 +392,7 @@ export const ManagerScreen: React.FC = () => {
             <div className="text-[10px] text-gray-500">E-commerce</div>
           </button>
           <button
-            onClick={() => window.location.href = '/#/sales'}
+            onClick={() => (window as any).__navigate?.('sales')}
             className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
           >
             <TrendingUp className="w-5 h-5 text-teal-600 mb-1" />
@@ -400,7 +400,7 @@ export const ManagerScreen: React.FC = () => {
             <div className="text-[10px] text-gray-500">Relatórios</div>
           </button>
           <button
-            onClick={() => window.location.href = '/#/ai-studio'}
+            onClick={() => (window as any).__navigate?.('ai-studio')}
             className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
           >
             <Palette className="w-5 h-5 text-rose-600 mb-1" />

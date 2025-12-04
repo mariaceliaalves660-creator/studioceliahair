@@ -197,7 +197,7 @@ export const AppointmentsScreen: React.FC = () => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1 mb-6 text-center">
+      <div className="grid grid-cols-7 gap-1 mb-6 text-center max-w-md mx-auto">
         {DAYS.map(d => <div key={d} className="text-xs font-bold text-gray-400 py-1">{d}</div>)}
         {Array.from({ length: getFirstDayOfMonth(currentDate) }).map((_, i) => (
           <div key={`empty-${i}`} />
@@ -210,7 +210,7 @@ export const AppointmentsScreen: React.FC = () => {
               key={day}
               onClick={() => handleDateClick(day)}
               className={`
-                aspect-square rounded-lg flex items-center justify-center text-sm font-medium border
+                h-10 w-10 rounded-lg flex items-center justify-center text-xs font-medium border
                 ${getDayColor(day)}
                 ${isSelected ? 'ring-2 ring-blue-500 ring-offset-1' : ''}
               `}
