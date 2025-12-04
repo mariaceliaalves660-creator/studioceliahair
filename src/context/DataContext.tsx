@@ -213,11 +213,81 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setOrders([...orders, { ...order, id: Date.now().toString() }]);
   };
   
-  // Sales
+  // Sales & Expenses
   const [sales, setSales] = useState<Sale[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
   
   const addSale = (sale: Sale) => {
     setSales([...sales, { ...sale, id: Date.now().toString() }]);
+  };
+  
+  const addExpense = (expense: any) => {
+    setExpenses([...expenses, { ...expense, id: Date.now().toString() }]);
+  };
+  
+  // Services
+  const [services, setServices] = useState<any[]>([]);
+  
+  const addService = (service: any) => {
+    setServices([...services, { ...service, id: Date.now().toString() }]);
+  };
+  
+  const updateService = (service: any) => {
+    setServices(services.map(s => s.id === service.id ? service : s));
+  };
+  
+  const removeService = (id: string) => {
+    setServices(services.filter(s => s.id !== id));
+  };
+  
+  // Staff
+  const [staff, setStaff] = useState<any[]>([]);
+  
+  const addStaff = (member: any) => {
+    setStaff([...staff, { ...member, id: Date.now().toString() }]);
+  };
+  
+  const updateStaff = (member: any) => {
+    setStaff(staff.map(s => s.id === member.id ? member : s));
+  };
+  
+  const removeStaff = (id: string) => {
+    setStaff(staff.filter(s => s.id !== id));
+  };
+  
+  // Admin Users
+  const addAdminUser = (admin: any) => {
+    // Not implemented yet
+  };
+  
+  const updateAdminUser = (admin: any) => {
+    // Not implemented yet
+  };
+  
+  const removeAdminUser = (id: string) => {
+    // Not implemented yet
+  };
+  
+  // Loyalty Rewards
+  const addLoyaltyReward = (reward: any) => {
+    // Not implemented yet
+  };
+  
+  const removeLoyaltyReward = (id: string) => {
+    // Not implemented yet
+  };
+  
+  // Register Sessions (for courses)
+  const registerSessions = (sessions: any[]) => {
+    // Not implemented yet
+  };
+  
+  // Reset Data
+  const resetTransactionalData = () => {
+    setSales([]);
+    setExpenses([]);
+    setAppointments([]);
+    setHairQuotes([]);
   };
   
   // Appointments
@@ -237,7 +307,41 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Hair Quotes
   const [hairQuotes, setHairQuotes] = useState<HairQuote[]>([]);
-  const [hairConfig, setHairConfig] = useState({});
+  const [hairConfig, setHairConfig] = useState({
+    textures: [
+      { value: 'liso', label: 'Liso', price: 100, enabled: true },
+      { value: 'ondulado', label: 'Ondulado', price: 120, enabled: true },
+      { value: 'cacheado', label: 'Cacheado', price: 150, enabled: true },
+      { value: 'crespo', label: 'Crespo', price: 180, enabled: true }
+    ],
+    colors: [
+      { value: 'preto', label: 'Preto', price: 0, enabled: true },
+      { value: 'castanho', label: 'Castanho', price: 20, enabled: true },
+      { value: 'loiro', label: 'Loiro', price: 50, enabled: true }
+    ],
+    conditions: [
+      { value: 'novo', label: 'Novo/Excelente', price: 100, enabled: true },
+      { value: 'usado', label: 'Usado/Bom', price: 50, enabled: true }
+    ],
+    lengths: [
+      { value: 30, label: '30cm', price: 50, enabled: true },
+      { value: 40, label: '40cm', price: 80, enabled: true },
+      { value: 50, label: '50cm', price: 120, enabled: true },
+      { value: 60, label: '60cm+', price: 180, enabled: true }
+    ],
+    circumferences: [
+      { value: 50, label: 'Pequena (50cm)', price: 30, enabled: true },
+      { value: 55, label: 'Média (55cm)', price: 50, enabled: true },
+      { value: 60, label: 'Grande (60cm)', price: 80, enabled: true }
+    ],
+    qualities: [
+      { value: 'basica', label: 'Básica', price: 0, enabled: true },
+      { value: 'premium', label: 'Premium', price: 100, enabled: true },
+      { value: 'luxo', label: 'Luxo', price: 200, enabled: true }
+    ],
+    maxPriceLimit: 1000,
+    monthlyGoal: 5000
+  });
   
   const addHairQuote = (quote: HairQuote) => {
     setHairQuotes([...hairQuotes, { ...quote, id: Date.now().toString() }]);
@@ -309,6 +413,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Sales
     sales,
     addSale,
+    expenses,
+    addExpense,
+    
+    // Services
+    services,
+    addService,
+    updateService,
+    removeService,
+    
+    // Staff
+    staff,
+    addStaff,
+    updateStaff,
+    removeStaff,
+    
+    // Admin
+    addAdminUser,
+    updateAdminUser,
+    removeAdminUser,
     
     // Appointments
     appointments,
@@ -325,8 +448,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Loyalty
     loyaltyRewards,
+    addLoyaltyReward,
+    removeLoyaltyReward,
     pointRedemptions,
     redeemPoints,
+    
+    // Other
+    registerSessions,
+    resetTransactionalData,
   };
 
   return (

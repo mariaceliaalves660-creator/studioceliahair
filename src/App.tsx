@@ -2,9 +2,19 @@ import React, { useState } from 'react';
 import { DataProvider } from './context/DataContext';
 import { HomeScreen } from './screens/HomeScreen';
 import { ProductsScreen } from './screens/ProductsScreen';
-import { StudentAreaScreen } from './screens/StudentAreaScreen';
-import { SocialHairCalculatorScreen } from './screens/SocialHairCalculatorScreen';
+import { AppointmentsScreen } from './screens/AppointmentsScreen';
+import { SalesScreen } from './screens/SalesScreen';
+import { CashierScreen } from './screens/CashierScreen';
+import { StaffScreen } from './screens/StaffScreen';
+import { ClientsScreen } from './screens/ClientsScreen';
 import { ManagerScreen } from './screens/ManagerScreen';
+import { AIStudioScreen } from './screens/AIStudioScreen';
+import { OrdersScreen } from './screens/OrdersScreen';
+import { SocialHairCalculatorScreen } from './screens/SocialHairCalculatorScreen';
+import { HairBusinessScreen } from './screens/HairBusinessScreen';
+import { StudentAreaScreen } from './screens/StudentAreaScreen';
+import { CoursesManagementScreen } from './screens/CoursesManagementScreen';
+import { StoredHairScreen } from './screens/StoredHairScreen';
 import { ArrowLeft } from 'lucide-react';
 
 function AppContent() {
@@ -32,6 +42,30 @@ function AppContent() {
         return <HomeScreen onNavigate={handleNavigate} />;
       case 'products':
         return <ProductsScreen />;
+      case 'orders':
+        return <OrdersScreen />;
+      case 'appointments':
+        return <AppointmentsScreen />;
+      case 'sales':
+        return <SalesScreen />;
+      case 'cashier':
+        return <CashierScreen />;
+      case 'staff':
+        return <StaffScreen />;
+      case 'clients':
+        return <ClientsScreen />;
+      case 'manager':
+        return <ManagerScreen />;
+      case 'ai-studio':
+        return <AIStudioScreen />;
+      case 'hair-business':
+        return <HairBusinessScreen />;
+      case 'student-area':
+        return <StudentAreaScreen />;
+      case 'courses-management':
+        return <CoursesManagementScreen />;
+      case 'stored-hair':
+        return <StoredHairScreen />;
       case 'courses':
         return <StudentAreaScreen />;
       case 'social':

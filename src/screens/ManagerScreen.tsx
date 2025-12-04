@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../context/DataContext';
-import { ShieldCheck, TrendingUp, DollarSign, History, ArrowUpRight, ArrowDownRight, Camera, Key, Trash2, Edit2, X, Save, Scissors, Users, User, Package, Globe, ShoppingBag, Clock, CheckSquare, Square, GraduationCap, FileText, CheckCircle, Video, Plus, Play, UserPlus, BookOpen, BarChart3, Lock, ChevronDown, ChevronRight, Link as LinkIcon, UserCheck, Gift, Award, Info, RefreshCcw } from 'lucide-react';
+import { ShieldCheck, TrendingUp, DollarSign, History, ArrowUpRight, ArrowDownRight, Camera, Key, Trash2, Edit2, X, Save, Scissors, Users, User, Package, Globe, ShoppingBag, Clock, CheckSquare, Square, GraduationCap, FileText, CheckCircle, Video, Plus, Play, UserPlus, BookOpen, BarChart3, Lock, ChevronDown, ChevronRight, Link as LinkIcon, UserCheck, Gift, Award, Info, RefreshCcw, Palette } from 'lucide-react';
 import { AdminUser, Service, Staff, Client, Product, UnitType, Course, Order, Student, CourseModule, CourseLesson, LoyaltyReward } from '../types';
 
 export const ManagerScreen: React.FC = () => {
@@ -16,8 +16,15 @@ export const ManagerScreen: React.FC = () => {
     loyaltyRewards, addLoyaltyReward, removeLoyaltyReward,
     orders,
     resetTransactionalData, // NEW: Import reset function
-    currentAdmin // NEW: Get current admin for permissions
+    currentAdmin, // NEW: Get current admin for permissions
+    setCurrentAdmin
   } = useData();
+  
+  // --- LOGIN STATE ---
+  const [showLogin, setShowLogin] = useState(!currentAdmin);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
   
   const [activeTab, setActiveTab] = useState<'financial' | 'services' | 'products' | 'staff' | 'clients' | 'access' | 'loyalty'>('financial');
 
@@ -232,11 +239,176 @@ export const ManagerScreen: React.FC = () => {
     }
   };
 
+  // --- LOGIN HANDLER ---
+  const handleLogin = () => {
+    const admin = adminUsers.find(u => u.email === loginEmail && u.password === loginPassword);
+    if (admin) {
+      setCurrentAdmin(admin);
+      setShowLogin(false);
+      setLoginError('');
+    } else {
+      setLoginError('Email ou senha incorretos');
+    }
+  };
+
+  const handleLogout = () => {
+    setCurrentAdmin(null);
+    setShowLogin(true);
+    setLoginEmail('');
+    setLoginPassword('');
+    setLoginError('');
+  };
+
+  // --- SHOW LOGIN SCREEN IF NOT AUTHENTICATED ---
+  if (showLogin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+          <div className="text-center mb-8">
+            <ShieldCheck className="w-16 h-16 mx-auto text-gray-700 mb-4" />
+            <h2 className="text-3xl font-bold text-gray-800">Área Restrita</h2>
+            <p className="text-gray-600 mt-2">Acesso para administradores</p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                placeholder="admin@celia.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                placeholder="••••••"
+              />
+            </div>
+
+            {loginError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {loginError}
+              </div>
+            )}
+
+            <button
+              onClick={handleLogin}
+              className="w-full bg-gradient-to-r from-gray-700 to-gray-900 text-white py-3 rounded-lg font-semibold hover:from-gray-800 hover:to-black transition-all shadow-lg"
+            >
+              Entrar
+            </button>
+
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-600 text-center">
+                <Lock className="w-3 h-3 inline mr-1" />
+                Credenciais de teste:<br />
+                <span className="font-mono">admin@celia.com / admin123</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 pb-20">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-        <ShieldCheck className="mr-2" /> Gerenciamento
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+          <ShieldCheck className="mr-2" /> Gerenciamento
+        </h2>
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm flex items-center"
+        >
+          <Lock className="w-4 h-4 mr-2" />
+          Sair
+        </button>
+      </div>
+
+      {/* Menu de Navegação Rápida */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl mb-6 border border-blue-100">
+        <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center">
+          <BarChart3 className="w-4 h-4 mr-2" />
+          Acesso Rápido às Funcionalidades
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <button
+            onClick={() => window.location.href = '/#/cashier'}
+            className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
+          >
+            <DollarSign className="w-5 h-5 text-green-600 mb-1" />
+            <div className="text-xs font-bold text-gray-800">Caixa</div>
+            <div className="text-[10px] text-gray-500">PDV / Vendas</div>
+          </button>
+          <button
+            onClick={() => window.location.href = '/#/appointments'}
+            className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
+          >
+            <Clock className="w-5 h-5 text-blue-600 mb-1" />
+            <div className="text-xs font-bold text-gray-800">Agendamentos</div>
+            <div className="text-[10px] text-gray-500">Calendário</div>
+          </button>
+          <button
+            onClick={() => window.location.href = '/#/courses-management'}
+            className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
+          >
+            <GraduationCap className="w-5 h-5 text-purple-600 mb-1" />
+            <div className="text-xs font-bold text-gray-800">Cursos</div>
+            <div className="text-[10px] text-gray-500">Gestão Completa</div>
+          </button>
+          <button
+            onClick={() => window.location.href = '/#/stored-hair'}
+            className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
+          >
+            <Scissors className="w-5 h-5 text-pink-600 mb-1" />
+            <div className="text-xs font-bold text-gray-800">Cabelos</div>
+            <div className="text-[10px] text-gray-500">Estoque Guardado</div>
+          </button>
+          <button
+            onClick={() => window.location.href = '/#/hair-business'}
+            className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
+          >
+            <Globe className="w-5 h-5 text-indigo-600 mb-1" />
+            <div className="text-xs font-bold text-gray-800">Neg. Cabelos</div>
+            <div className="text-[10px] text-gray-500">Compra/Venda</div>
+          </button>
+          <button
+            onClick={() => window.location.href = '/#/orders'}
+            className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
+          >
+            <ShoppingBag className="w-5 h-5 text-orange-600 mb-1" />
+            <div className="text-xs font-bold text-gray-800">Pedidos</div>
+            <div className="text-[10px] text-gray-500">E-commerce</div>
+          </button>
+          <button
+            onClick={() => window.location.href = '/#/sales'}
+            className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
+          >
+            <TrendingUp className="w-5 h-5 text-teal-600 mb-1" />
+            <div className="text-xs font-bold text-gray-800">Vendas</div>
+            <div className="text-[10px] text-gray-500">Relatórios</div>
+          </button>
+          <button
+            onClick={() => window.location.href = '/#/ai-studio'}
+            className="bg-white p-3 rounded-lg hover:bg-blue-50 transition-colors text-left border border-gray-200"
+          >
+            <Palette className="w-5 h-5 text-rose-600 mb-1" />
+            <div className="text-xs font-bold text-gray-800">IA Studio</div>
+            <div className="text-[10px] text-gray-500">Edição Fotos</div>
+          </button>
+        </div>
+      </div>
 
       <div className="flex mb-6 bg-gray-100 p-1 rounded-lg overflow-x-auto">
         {(['financial', 'services', 'products', 'staff', 'clients', 'loyalty', 'access'] as const).map(tab => (
