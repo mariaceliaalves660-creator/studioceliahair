@@ -260,6 +260,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [orders, setOrders] = useState<any[]>(() => loadFromLocalStorage('orders', []));
   
   const addOrder = (order: any) => {
+    // Decrementar estoque dos produtos imediatamente ao criar o pedido
+    order.items.forEach((item: any) => {
+      if (item.type === 'product') {
+        const product = products.find(p => p.id === item.productId);
+        if (product) {
+          const newStock = product.stock - item.quantity;
+          updateProduct({ ...product, stock: Math.max(0, newStock) });
+        }
+      }
+    });
+    
     setOrders([...orders, { ...order, id: Date.now().toString() }]);
   };
   
@@ -300,6 +311,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   const removeOrder = (id: string) => {
+    // Restaurar estoque ao excluir pedido pendente
+    const order = orders.find(o => o.id === id);
+    if (order && order.status === 'pending') {
+      order.items.forEach((item: any) => {
+        if (item.type === 'product') {
+          const product = products.find(p => p.id === item.productId);
+          if (product) {
+            const newStock = product.stock + item.quantity;
+            updateProduct({ ...product, stock: newStock });
+          }
+        }
+      });
+    }
+    
     setOrders(orders.filter(o => o.id !== id));
   };
   
