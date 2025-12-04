@@ -118,18 +118,15 @@ export const SalesScreen: React.FC = () => {
         alert(`Selecione um ${addItemType === 'service' ? 'Serviço' : 'Produto'} para adicionar.`);
         return;
     }
-
-    // 3. Validate Staff
-    if (!selectedItemStaffId) {
-        alert("Selecione o profissional responsável pelo item.");
-        return;
-    }
     
     let newItem: SaleItem | null = null;
     const qtyVal = parseFloat(quantity) || 0;
-    const staffMember = staff.find(s => s.id === selectedItemStaffId);
     
-    if (qtyVal <= 0 || !staffMember) return;
+    // Use current admin as responsible
+    const responsibleStaffId = currentAdmin?.id || 'system';
+    const responsibleStaffName = currentAdmin?.name || 'Sistema';
+    
+    if (qtyVal <= 0) return;
 
     if (addItemType === 'service') {
       // Service Logic
@@ -143,9 +140,9 @@ export const SalesScreen: React.FC = () => {
           name: srv.name, 
           price: totalPrice, 
           quantity: 1,
-          staffId: staffMember.id,
-          staffName: staffMember.name,
-          category: srv.category // NEW: Add service category
+          staffId: responsibleStaffId,
+          staffName: responsibleStaffName,
+          category: srv.category
         };
       }
     } else {
@@ -183,10 +180,10 @@ export const SalesScreen: React.FC = () => {
           price: unitPriceForSale, 
           quantity: qtyVal,
           unit: selectedUnit,
-          staffId: staffMember.id,
-          staffName: staffMember.name,
-          origin: prod.origin || 'store', // IMPORTANT: Save origin for split reporting
-          category: prod.category // NEW: Add product category
+          staffId: responsibleStaffId,
+          staffName: responsibleStaffName,
+          origin: prod.origin || 'store',
+          category: prod.category
         };
       }
     }
@@ -196,7 +193,6 @@ export const SalesScreen: React.FC = () => {
       setSelectedItemId('');
       setManualPrice('');
       setQuantity('1');
-      setSelectedItemStaffId('');
     }
   };
 
@@ -361,22 +357,7 @@ export const SalesScreen: React.FC = () => {
               </div>
             )}
 
-            {/* 2. Select Staff for this Item */}
-            <div>
-               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">
-                 Profissional Responsável
-               </label>
-               <select 
-                className="w-full p-2 border rounded-lg bg-white" 
-                value={selectedItemStaffId} 
-                onChange={e => setSelectedItemStaffId(e.target.value)}
-              >
-                <option value="">Selecione quem realizou...</option>
-                {staff.map(s => <option key={s.id} value={s.id}>{s.name} ({s.role})</option>)}
-              </select>
-            </div>
-
-            {/* 3. Inputs based on Type */}
+            {/* 2. Inputs based on Type */}
             {selectedItemId && (
               <div className="flex flex-col md:flex-row gap-3 items-end">
                 
