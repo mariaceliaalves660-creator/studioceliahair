@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { Package, AlertTriangle, Edit2, X, Save, ShoppingCart, Minus, Plus, MapPin, CheckCircle, Camera, Globe, ChevronRight, ShoppingBag, Star, Scissors, ChevronLeft, GraduationCap, Clock, FileText, CheckSquare, Users, LogIn, User, Gift, LogOut, Ticket, Tag, Ban, History, Truck, Box } from 'lucide-react';
 import { Product, UnitType, Order, Course, LoyaltyReward } from '../types';
-import { ClientStoredHair } from '../src/components/ClientStoredHair'; // Import ClientStoredHair
 
 export const ProductsScreen: React.FC = () => {
   const { products, courses, updateProduct, viewMode, addOrder, students, loggedInClient, setLoggedInClient, clients, redeemPoints, loyaltyRewards, pointRedemptions, sales } = useData();

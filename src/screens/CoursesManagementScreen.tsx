@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { TrendingUp, BookOpen, Plus, Users, ShoppingBag, Edit2, Camera, Trash2, Video, Link as LinkIcon, Play, FileText, BarChart3, Save, CheckSquare, Square, Clock, Upload, Loader2, MessageSquareText } from 'lucide-react';
 import { Course, CourseModule, CourseLesson, Student, Client, Sale } from '../types';
-import { uploadCourseFile } from '../src/integrations/supabase/storage'; // Importar o serviço de storage
 
 export const CoursesManagementScreen: React.FC = () => {
   const { 

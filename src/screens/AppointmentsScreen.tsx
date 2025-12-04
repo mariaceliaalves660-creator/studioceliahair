@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Scissors, Edit2, Save, X, Users, ChevronDown, CheckCircle, DollarSign, Trash2, Repeat, UserCheck } from 'lucide-react'; // Importar UserCheck
 import { Appointment } from '../types';
-import { QuickSaleModal } from '../src/components/QuickSaleModal'; // Caminho corrigido
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 

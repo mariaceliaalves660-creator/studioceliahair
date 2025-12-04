@@ -2,7 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { Calculator, Activity, Award, Palette, CheckCircle, Camera, ArrowRight, Ruler, Scissors, Lock, Ban, AlertTriangle, Trophy, Star, MapPin, Copy } from 'lucide-react';
 import { HairQuote } from '../types';
-import { BRAZIL_STATES, AGE_GROUPS } from '../constants';
+
+// Constants
+const BRAZIL_STATES = ['SP', 'RJ', 'MG', 'BA', 'PR', 'RS', 'PE', 'CE', 'PA', 'SC', 'GO', 'PB', 'MA', 'ES', 'PI', 'RN', 'AL', 'MT', 'MS', 'DF', 'RO', 'AC', 'AM', 'AP', 'RR', 'TO'];
+const AGE_GROUPS = ['18-25', '26-35', '36-45', '46-55', '56+'];
 
 export const SocialHairCalculatorScreen: React.FC = () => {
   const { currentUser, addHairQuote, registerHairPurchase, hairConfig, hairQuotes } = useData();
