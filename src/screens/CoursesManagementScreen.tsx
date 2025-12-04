@@ -84,42 +84,42 @@ export const CoursesManagementScreen: React.FC = () => {
     setView('list');
   };
 
-  const handleSaveCourseInfo = async (e: React.FormEvent) => { // Make it async
+  const handleSaveCourseInfo = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const price = parseFloat(crsPrice);
-      if (isNaN(price)) {
-        alert("Por favor, insira um valor numérico válido para o preço.");
-        return;
-      }
-
-      const courseData = {
-        title: crsTitle,
-        workload: crsWorkload,
-        format: crsFormat,
-        certificate: crsCertificate,
-        materials: crsMaterials,
-        price: price,
-        imageUrl: crsImage,
-        active: true,
-        maxStudents: crsLimit !== '' ? parseInt(crsLimit) : undefined // Ajustado para tratar '0' corretamente
-      };
-
-      console.log("Course data to save:", courseData); // Debugging log
-
-      if (editingCourse) {
-        await updateCourse({ ...editingCourse, ...courseData }); // Await update
-        alert('Informações do curso atualizadas!');
-      } else {
-        await addCourse({ id: `crs-${Date.now()}`, ...courseData, modules: [] }); // Await add
-        alert('Curso criado com sucesso!');
-      }
-      clearCourseFormStates(); // Clear form after save
-      setView('list'); // Navigate to list after successful save
-    } catch (error) {
-      console.error("Error saving course:", error);
-      alert("Ocorreu um erro ao salvar o curso. Tente novamente.");
+    
+    const price = parseFloat(crsPrice);
+    if (isNaN(price) || price <= 0) {
+      alert("Por favor, insira um valor numérico válido para o preço.");
+      return;
     }
+
+    if (!crsTitle || !crsWorkload || !crsCertificate) {
+      alert("Por favor, preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    const courseData = {
+      title: crsTitle,
+      workload: crsWorkload,
+      format: crsFormat,
+      certificate: crsCertificate,
+      materials: crsMaterials,
+      price: price,
+      imageUrl: crsImage,
+      active: true,
+      maxStudents: crsLimit !== '' ? parseInt(crsLimit) : undefined
+    };
+
+    if (editingCourse) {
+      updateCourse({ ...editingCourse, ...courseData });
+      alert('Informações do curso atualizadas!');
+    } else {
+      addCourse({ id: `crs-${Date.now()}`, ...courseData, modules: [] });
+      alert('Curso criado com sucesso!');
+    }
+    
+    clearCourseFormStates();
+    setView('list');
   };
 
   const startEditCourseInfo = (c: Course) => {
@@ -384,15 +384,28 @@ export const CoursesManagementScreen: React.FC = () => {
 
       {/* CATALOG LIST */}
       {view === 'list' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-            {courses.map(c => {
-                const enrolledCount = students.filter(s => s.enrolledCourseIds.includes(c.id)).length;
-                const percentFull = c.maxStudents ? (enrolledCount / c.maxStudents) * 100 : 0;
+        <div className="animate-fade-in">
+            {courses.length === 0 ? (
+              <div className="bg-white p-12 rounded-xl border border-gray-100 text-center">
+                <BookOpen size={48} className="mx-auto mb-4 opacity-20"/>
+                <p className="text-gray-500 mb-4">Nenhum curso cadastrado ainda.</p>
+                <button 
+                  onClick={() => { clearCourseFormStates(); setView('edit'); }}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700"
+                >
+                  Criar Primeiro Curso
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {courses.map(c => {
+                    const enrolledCount = students.filter(s => s.enrolledCourseIds.includes(c.id)).length;
+                    const percentFull = c.maxStudents ? (enrolledCount / c.maxStudents) * 100 : 0;
 
-                return (
-                <div key={c.id} className="bg-white border rounded-xl p-4 shadow-sm flex flex-col justify-between hover:shadow-md transition">
-                    <div className="flex items-start mb-4">
-                        <img src={c.imageUrl || 'https://picsum.photos/100/100'} className="w-20 h-20 rounded object-cover mr-4 bg-gray-100"/>
+                    return (
+                    <div key={c.id} className="bg-white border rounded-xl p-4 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                        <div className="flex items-start mb-4">
+                            <img src={c.imageUrl || 'https://picsum.photos/100/100'} alt={c.title} className="w-20 h-20 rounded object-cover mr-4 bg-gray-100"/>
                         <div className="flex-1">
                             <div className="flex justify-between items-start">
                                 <h3 className="font-bold text-gray-800">{c.title}</h3>
@@ -420,8 +433,10 @@ export const CoursesManagementScreen: React.FC = () => {
                         </button>
                         <button onClick={() => { if(confirm('Excluir curso?')) removeCourse(c.id); }} className="p-2 text-red-500 hover:bg-red-50 rounded"><Trash2 size={16}/></button>
                     </div>
-                </div>
-            )})}
+                    </div>
+                )})}
+              </div>
+            )}
         </div>
       )}
 

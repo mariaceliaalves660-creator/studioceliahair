@@ -310,6 +310,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setStoredHair([...storedHair, { ...hair, id: Date.now().toString() }]);
   };
   
+  const updateStoredHair = (hair: any) => {
+    setStoredHair(storedHair.map(h => h.id === hair.id ? hair : h));
+  };
+  
+  const removeStoredHair = (id: string) => {
+    setStoredHair(storedHair.filter(h => h.id !== id));
+  };
+  
   // Cashier Sessions
   const [cashierSessions, setCashierSessions] = useState<any[]>(() => loadFromLocalStorage('cashierSessions', []));
   
@@ -475,8 +483,35 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHairQuotes([...hairQuotes, { ...quote, id: Date.now().toString() }]);
   };
   
+  const updateHairQuote = (quote: HairQuote) => {
+    setHairQuotes(hairQuotes.map(q => q.id === quote.id ? quote : q));
+  };
+  
+  const approveHairQuote = (quoteId: string) => {
+    const quote = hairQuotes.find(q => q.id === quoteId);
+    if (quote) {
+      const updatedQuote = { ...quote, status: 'stock' as const };
+      updateHairQuote(updatedQuote);
+      
+      // Registrar despesa no fluxo de caixa exclusivo
+      const expense = {
+        id: `exp-hair-${Date.now()}`,
+        date: new Date().toISOString(),
+        description: `Compra de cabelo - ${quote.sellerName}`,
+        amount: quote.totalValue,
+        category: 'Compra de Cabelo',
+        businessUnit: 'hair_business'
+      };
+      addExpense(expense);
+    }
+  };
+  
   const registerHairPurchase = (quote: HairQuote) => {
     addHairQuote(quote);
+  };
+  
+  const updateHairConfig = (config: any) => {
+    setHairConfig(config);
   };
   
   // Loyalty Rewards
@@ -589,6 +624,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Stored Hair
     storedHair,
     addStoredHair,
+    updateStoredHair,
+    removeStoredHair,
     
     // Cashier Sessions
     cashierSessions,
@@ -610,9 +647,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Hair
     hairQuotes,
     addHairQuote,
+    updateHairQuote,
+    approveHairQuote,
     registerHairPurchase,
     hairConfig,
     setHairConfig,
+    updateHairConfig,
     
     // Loyalty
     loyaltyRewards,
