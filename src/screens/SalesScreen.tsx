@@ -15,11 +15,31 @@ export const SalesScreen: React.FC = () => {
   const [addItemType, setAddItemType] = useState<'service' | 'product'>('service');
   const [selectedItemId, setSelectedItemId] = useState('');
   const [selectedItemStaffId, setSelectedItemStaffId] = useState(''); // Staff for specific item
+  const [selectedServiceCategory, setSelectedServiceCategory] = useState(''); // NEW: Service category filter
   
   // Inputs
   const [manualPrice, setManualPrice] = useState(''); // Only for Services
   const [quantity, setQuantity] = useState('1');
   const [selectedUnit, setSelectedUnit] = useState<UnitType>('un');
+
+  // Service Categories
+  const serviceCategories = [
+    { id: 'cabelos_corte', name: '💇‍♀️ Cabelos - Cortes e Finalizações', icon: '💇‍♀️' },
+    { id: 'coloracao', name: '🎨 Coloração e Química Capilar', icon: '🎨' },
+    { id: 'tratamentos', name: '💆‍♀️ Tratamentos Capilares', icon: '💆‍♀️' },
+    { id: 'alisamentos', name: '🔥 Alisamentos', icon: '🔥' },
+    { id: 'mega_hair', name: '💇‍♀️ Mega Hair / Extensões', icon: '💇‍♀️' },
+    { id: 'sobrancelhas', name: '👁️ Design de Sobrancelhas', icon: '👁️' },
+    { id: 'cilios', name: '✨ Cílios', icon: '✨' },
+    { id: 'unhas', name: '💅 Unhas - Manicure e Pedicure', icon: '💅' },
+    { id: 'maquiagem', name: '💄 Maquiagem', icon: '💄' },
+    { id: 'estetica', name: '💆‍♀️ Estética Facial e Corporal', icon: '💆‍♀️' }
+  ];
+
+  // Filter services by selected category
+  const filteredServices = selectedServiceCategory
+    ? services.filter(s => s.category === selectedServiceCategory)
+    : [];
 
   // Derived state for product calculation
   const getProductDetails = () => products.find(p => p.id === selectedItemId);
@@ -69,6 +89,12 @@ export const SalesScreen: React.FC = () => {
         setSelectedUnit(prod.unit); 
       }
     }
+  };
+
+  // Handle service category change
+  const handleServiceCategoryChange = (categoryId: string) => {
+    setSelectedServiceCategory(categoryId);
+    setSelectedItemId(''); // Reset selected service when changing category
   };
 
   const handleAddItem = () => {
@@ -236,13 +262,13 @@ export const SalesScreen: React.FC = () => {
           <div className="flex space-x-2 mb-4">
             <button 
               className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${addItemType === 'service' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-              onClick={() => { setAddItemType('service'); setSelectedItemId(''); setManualPrice(''); }}
+              onClick={() => { setAddItemType('service'); setSelectedItemId(''); setManualPrice(''); setSelectedServiceCategory(''); }}
             >
               Serviço
             </button>
             <button 
               className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${addItemType === 'product' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-              onClick={() => { setAddItemType('product'); setSelectedItemId(''); setManualPrice(''); }}
+              onClick={() => { setAddItemType('product'); setSelectedItemId(''); setManualPrice(''); setSelectedServiceCategory(''); }}
             >
               Produto
             </button>
@@ -250,29 +276,81 @@ export const SalesScreen: React.FC = () => {
 
           <div className="space-y-3 bg-gray-50 p-3 rounded-lg border border-gray-100 animate-fade-in">
             {/* 1. Select Item */}
-            <div>
-               <div className="flex justify-between items-center mb-1">
-                 <label className="text-xs font-semibold text-gray-500 uppercase">
-                   {addItemType === 'service' ? 'Selecione o Serviço' : 'Selecione o Produto'}
-                 </label>
-                 {addItemType === 'product' && currentProduct && (
-                   <span className={`text-xs font-bold ${currentProduct.stock <= 5 ? 'text-red-600' : 'text-emerald-600'}`}>
-                      Estoque: {currentProduct.stock} {currentProduct.unit}
-                   </span>
-                 )}
-               </div>
-               <select 
-                className="w-full p-2 border rounded-lg bg-white" 
-                value={selectedItemId} 
-                onChange={e => handleItemSelect(e.target.value)}
-              >
-                <option value="">Selecione...</option>
-                {addItemType === 'service' 
-                  ? services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)
-                  : products.map(p => <option key={p.id} value={p.id}>{p.name} (R$ {p.price}/{p.unit})</option>)
-                }
-              </select>
-            </div>
+            {addItemType === 'service' ? (
+              <>
+                {/* Step 1: Select Service Category */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">
+                    1. Selecione a Categoria
+                  </label>
+                  <select 
+                    className="w-full p-2 border rounded-lg bg-white font-medium" 
+                    value={selectedServiceCategory} 
+                    onChange={e => handleServiceCategoryChange(e.target.value)}
+                  >
+                    <option value="">Escolha uma categoria...</option>
+                    {serviceCategories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Step 2: Select Service from Category */}
+                {selectedServiceCategory && (
+                  <div className="animate-fade-in">
+                    <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">
+                      2. Selecione o Serviço
+                    </label>
+                    {filteredServices.length === 0 ? (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+                        <AlertCircle className="mx-auto mb-2 text-amber-600" size={24} />
+                        <p className="text-sm text-amber-700 font-medium">
+                          Nenhum serviço cadastrado nesta categoria
+                        </p>
+                        <p className="text-xs text-amber-600 mt-1">
+                          Vá em "Serviços" para adicionar serviços desta categoria
+                        </p>
+                      </div>
+                    ) : (
+                      <select 
+                        className="w-full p-2 border rounded-lg bg-white" 
+                        value={selectedItemId} 
+                        onChange={e => handleItemSelect(e.target.value)}
+                      >
+                        <option value="">Escolha o serviço...</option>
+                        {filteredServices.map(s => (
+                          <option key={s.id} value={s.id}>
+                            {s.name} - R$ {s.price.toFixed(2)}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              /* Product Selection (unchanged) */
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-semibold text-gray-500 uppercase">
+                    Selecione o Produto
+                  </label>
+                  {currentProduct && (
+                    <span className={`text-xs font-bold ${currentProduct.stock <= 5 ? 'text-red-600' : 'text-emerald-600'}`}>
+                       Estoque: {currentProduct.stock} {currentProduct.unit}
+                    </span>
+                  )}
+                </div>
+                <select 
+                  className="w-full p-2 border rounded-lg bg-white" 
+                  value={selectedItemId} 
+                  onChange={e => handleItemSelect(e.target.value)}
+                >
+                  <option value="">Selecione...</option>
+                  {products.map(p => <option key={p.id} value={p.id}>{p.name} (R$ {p.price}/{p.unit})</option>)}
+                </select>
+              </div>
+            )}
 
             {/* 2. Select Staff for this Item */}
             <div>

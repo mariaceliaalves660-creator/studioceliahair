@@ -382,7 +382,71 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   // Services
-  const [services, setServices] = useState<any[]>(() => loadFromLocalStorage('services', []));
+  const [services, setServices] = useState<any[]>(() => loadFromLocalStorage('services', [
+    // 💇‍♀️ Cabelos - Cortes e Finalizações
+    { id: 's1', name: 'Corte feminino', price: 50, durationMinutes: 40, category: 'cabelos_corte' },
+    { id: 's2', name: 'Corte masculino', price: 30, durationMinutes: 30, category: 'cabelos_corte' },
+    { id: 's3', name: 'Corte infantil', price: 25, durationMinutes: 25, category: 'cabelos_corte' },
+    { id: 's4', name: 'Escova simples', price: 35, durationMinutes: 40, category: 'cabelos_corte' },
+    { id: 's5', name: 'Escova modelada', price: 45, durationMinutes: 50, category: 'cabelos_corte' },
+    { id: 's6', name: 'Prancha (chapinha)', price: 40, durationMinutes: 45, category: 'cabelos_corte' },
+    
+    // 🎨 Coloração e Química Capilar
+    { id: 's7', name: 'Coloração global', price: 150, durationMinutes: 120, category: 'coloracao' },
+    { id: 's8', name: 'Retoque de raiz', price: 80, durationMinutes: 90, category: 'coloracao' },
+    { id: 's9', name: 'Luzes', price: 200, durationMinutes: 150, category: 'coloracao' },
+    { id: 's10', name: 'Ombré Hair', price: 250, durationMinutes: 180, category: 'coloracao' },
+    { id: 's11', name: 'Morena iluminada', price: 220, durationMinutes: 150, category: 'coloracao' },
+    { id: 's12', name: 'Californianas', price: 280, durationMinutes: 180, category: 'coloracao' },
+    
+    // 💆‍♀️ Tratamentos Capilares
+    { id: 's13', name: 'Hidratação', price: 60, durationMinutes: 45, category: 'tratamentos' },
+    { id: 's14', name: 'Nutrição', price: 70, durationMinutes: 50, category: 'tratamentos' },
+    { id: 's15', name: 'Reconstrução', price: 80, durationMinutes: 60, category: 'tratamentos' },
+    { id: 's16', name: 'Botox capilar', price: 120, durationMinutes: 90, category: 'tratamentos' },
+    { id: 's17', name: 'Cauterização', price: 100, durationMinutes: 75, category: 'tratamentos' },
+    
+    // 🔥 Alisamentos
+    { id: 's18', name: 'Progressiva', price: 180, durationMinutes: 150, category: 'alisamentos' },
+    { id: 's19', name: 'Progressiva orgânica', price: 200, durationMinutes: 150, category: 'alisamentos' },
+    { id: 's20', name: 'Escova definitiva', price: 220, durationMinutes: 180, category: 'alisamentos' },
+    { id: 's21', name: 'Relaxamento', price: 150, durationMinutes: 120, category: 'alisamentos' },
+    
+    // 💇‍♀️ Mega Hair / Extensões
+    { id: 's22', name: 'Mega Hair fio a fio', price: 500, durationMinutes: 300, category: 'mega_hair' },
+    { id: 's23', name: 'Mega Hair na fita', price: 400, durationMinutes: 180, category: 'mega_hair' },
+    { id: 's24', name: 'Manutenção de Mega Hair', price: 150, durationMinutes: 120, category: 'mega_hair' },
+    { id: 's25', name: 'Remoção de Mega Hair', price: 100, durationMinutes: 90, category: 'mega_hair' },
+    
+    // 👁️ Design de Sobrancelhas
+    { id: 's26', name: 'Design de sobrancelha', price: 25, durationMinutes: 20, category: 'sobrancelhas' },
+    { id: 's27', name: 'Design com henna', price: 35, durationMinutes: 30, category: 'sobrancelhas' },
+    { id: 's28', name: 'Design com tintura', price: 30, durationMinutes: 25, category: 'sobrancelhas' },
+    { id: 's29', name: 'Micropigmentação', price: 600, durationMinutes: 180, category: 'sobrancelhas' },
+    
+    // ✨ Cílios
+    { id: 's30', name: 'Extensão de cílios fio a fio', price: 150, durationMinutes: 120, category: 'cilios' },
+    { id: 's31', name: 'Volume russo', price: 180, durationMinutes: 150, category: 'cilios' },
+    { id: 's32', name: 'Lash lifting (curvatura)', price: 100, durationMinutes: 60, category: 'cilios' },
+    { id: 's33', name: 'Manutenção de cílios', price: 80, durationMinutes: 60, category: 'cilios' },
+    
+    // 💅 Unhas - Manicure e Pedicure
+    { id: 's34', name: 'Manicure tradicional', price: 30, durationMinutes: 40, category: 'unhas' },
+    { id: 's35', name: 'Pedicure tradicional', price: 35, durationMinutes: 50, category: 'unhas' },
+    { id: 's36', name: 'Unha em gel', price: 60, durationMinutes: 90, category: 'unhas' },
+    { id: 's37', name: 'Unha decorada', price: 50, durationMinutes: 60, category: 'unhas' },
+    { id: 's38', name: 'Alongamento de unhas', price: 80, durationMinutes: 120, category: 'unhas' },
+    
+    // 💄 Maquiagem
+    { id: 's39', name: 'Maquiagem social', price: 80, durationMinutes: 60, category: 'maquiagem' },
+    { id: 's40', name: 'Maquiagem para festas', price: 100, durationMinutes: 75, category: 'maquiagem' },
+    { id: 's41', name: 'Maquiagem para noivas', price: 200, durationMinutes: 120, category: 'maquiagem' },
+    
+    // 💆‍♀️ Estética Facial e Corporal
+    { id: 's42', name: 'Limpeza de pele', price: 120, durationMinutes: 90, category: 'estetica' },
+    { id: 's43', name: 'Drenagem linfática', price: 100, durationMinutes: 60, category: 'estetica' },
+    { id: 's44', name: 'Massagem relaxante', price: 90, durationMinutes: 60, category: 'estetica' },
+  ]));
   
   const addService = (service: any) => {
     setServices([...services, { ...service, id: Date.now().toString() }]);
