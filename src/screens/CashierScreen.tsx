@@ -1,7 +1,128 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { DollarSign, TrendingUp, TrendingDown, Wallet, Calendar, Users, PieChart, X, BarChart2, Lock, Unlock, Clock, UserCheck } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Wallet, Calendar, Users, PieChart, X, BarChart2, Lock, Unlock, Clock, UserCheck, History } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+
+// Componente Histórico de Caixas
+const HistoricoCaixas: React.FC = () => {
+  const { cashierSessions, sales, expenses } = useData();
+  const [expanded, setExpanded] = useState(false);
+
+  const closedSessions = cashierSessions
+    .filter(s => s.status === 'closed')
+    .sort((a, b) => new Date(b.closedAt).getTime() - new Date(a.closedAt).getTime());
+
+  if (closedSessions.length === 0) return null;
+
+  const calculateSessionTotals = (session: any) => {
+    const sessionStart = new Date(session.openedAt);
+    const sessionEnd = new Date(session.closedAt);
+    
+    const sessionSales = sales.filter(s => {
+      const saleDate = new Date(s.date);
+      return saleDate >= sessionStart && saleDate <= sessionEnd;
+    });
+
+    const totalIncome = sessionSales.reduce((acc, sale) => {
+      const generalItemsTotal = sale.items.reduce((itemAcc: number, item: any) => {
+        if (item.type === 'service' || (item.type === 'product' && item.origin !== 'hair_business')) {
+          return itemAcc + (item.price * item.quantity);
+        }
+        return itemAcc;
+      }, 0);
+      return acc + generalItemsTotal;
+    }, 0);
+
+    const sessionExpenses = expenses.filter(e => {
+      const expDate = new Date(e.date);
+      return expDate >= sessionStart && expDate <= sessionEnd && e.businessUnit === 'salon';
+    });
+
+    const totalExpenses = sessionExpenses.reduce((acc, e) => acc + e.amount, 0);
+    const finalBalance = session.openingBalance + totalIncome - totalExpenses;
+    const balanceAfterWithdraw = finalBalance - (session.withdrawAmount || 0);
+
+    return { totalIncome, totalExpenses, finalBalance, balanceAfterWithdraw };
+  };
+
+  const displaySessions = expanded ? closedSessions : closedSessions.slice(0, 3);
+
+  return (
+    <div className="mt-8 bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-bold text-gray-800 flex items-center">
+          <History className="mr-2 text-purple-600" size={20} /> Histórico de Caixas Fechados
+        </h3>
+        {closedSessions.length > 3 && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-xs text-purple-600 font-bold hover:underline"
+          >
+            {expanded ? 'Ver Menos' : `Ver Todos (${closedSessions.length})`}
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-3">
+        {displaySessions.map((session) => {
+          const totals = calculateSessionTotals(session);
+          const openDate = new Date(session.openedAt);
+          const closeDate = new Date(session.closedAt);
+          const duration = Math.floor((closeDate.getTime() - openDate.getTime()) / (1000 * 60 * 60));
+
+          return (
+            <div key={session.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <div className="font-bold text-gray-800 flex items-center gap-2">
+                    <Calendar size={14} className="text-purple-600" />
+                    {openDate.toLocaleDateString('pt-BR')}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    <Clock size={12} className="inline mr-1" />
+                    Abertura: {openDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} • 
+                    Fechamento: {closeDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    {duration > 0 && <span className="ml-2">({duration}h)</span>}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    Aberto por: {session.openedBy} • Fechado por: {session.closedBy}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                <div className="bg-blue-50 p-2 rounded border border-blue-100">
+                  <div className="text-xs text-blue-600 font-bold">Saldo Inicial</div>
+                  <div className="font-bold text-blue-800">R$ {session.openingBalance.toFixed(2)}</div>
+                </div>
+                <div className="bg-green-50 p-2 rounded border border-green-100">
+                  <div className="text-xs text-green-600 font-bold">Entradas</div>
+                  <div className="font-bold text-green-800">R$ {totals.totalIncome.toFixed(2)}</div>
+                </div>
+                <div className="bg-red-50 p-2 rounded border border-red-100">
+                  <div className="text-xs text-red-600 font-bold">Saídas</div>
+                  <div className="font-bold text-red-800">R$ {totals.totalExpenses.toFixed(2)}</div>
+                </div>
+                <div className="bg-purple-50 p-2 rounded border border-purple-100">
+                  <div className="text-xs text-purple-600 font-bold">Saldo Final</div>
+                  <div className="font-bold text-purple-800">R$ {totals.finalBalance.toFixed(2)}</div>
+                </div>
+                <div className={`p-2 rounded border ${totals.balanceAfterWithdraw >= 0 ? 'bg-gray-50 border-gray-200' : 'bg-orange-50 border-orange-200'}`}>
+                  <div className="text-xs font-bold" style={{color: totals.balanceAfterWithdraw >= 0 ? '#374151' : '#ea580c'}}>
+                    Retirada: R$ {(session.withdrawAmount || 0).toFixed(2)}
+                  </div>
+                  <div className="font-bold" style={{color: totals.balanceAfterWithdraw >= 0 ? '#111827' : '#ea580c'}}>
+                    Ficou: R$ {totals.balanceAfterWithdraw.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 export const CashierScreen: React.FC = () => {
   const { sales, expenses, staff, addExpense, getCurrentSession, openRegister, closeRegister } = useData();
@@ -409,6 +530,9 @@ export const CashierScreen: React.FC = () => {
           </div>
         </form>
       )}
+
+      {/* Histórico de Caixas Fechados */}
+      <HistoricoCaixas />
 
       {/* Chart Modal */}
       {showChartModal && (
