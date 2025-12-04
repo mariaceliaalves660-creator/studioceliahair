@@ -535,44 +535,51 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [hairConfig, setHairConfig] = useState(() => loadFromLocalStorage('hairConfig', {
     textures: [
       { value: 'liso', label: 'Liso', price: 100, enabled: true },
-      { value: 'ondulado', label: 'Ondulado', price: 120, enabled: true },
-      { value: 'cacheado', label: 'Cacheado', price: 150, enabled: true },
-      { value: 'crespo', label: 'Crespo', price: 180, enabled: true }
+      { value: 'ondulado', label: 'Ondulado', price: 100, enabled: true },
+      { value: 'cacheado', label: 'Cacheado', price: 150, enabled: true }
     ],
     colors: [
       { value: 'preto', label: 'Preto', price: 0, enabled: true },
-      { value: 'castanho', label: 'Castanho', price: 20, enabled: true },
-      { value: 'loiro', label: 'Loiro', price: 50, enabled: true }
+      { value: 'castanho', label: 'Castanho', price: 0, enabled: true },
+      { value: 'loiro', label: 'Loiro', price: 0, enabled: true }
     ],
     conditions: [
-      { value: 'novo', label: 'Novo/Excelente', price: 100, enabled: true },
-      { value: 'usado', label: 'Usado/Bom', price: 50, enabled: true }
+      { value: 'virgem', label: 'Virgem', price: 60, enabled: true },
+      { value: 'selagem', label: 'Selagem', price: 20, enabled: true },
+      { value: 'pintado', label: 'Pintado', price: 20, enabled: true }
     ],
     lengths: [
-      { value: 40, label: '40cm', price: 50, enabled: true },
-      { value: 50, label: '50cm', price: 80, enabled: true },
-      { value: 60, label: '60cm', price: 120, enabled: true },
-      { value: 70, label: '70cm', price: 160, enabled: true },
-      { value: 80, label: '80cm', price: 200, enabled: true },
-      { value: 90, label: '90cm', price: 250, enabled: true },
-      { value: 100, label: '100cm', price: 300, enabled: true },
-      { value: 110, label: '110cm', price: 350, enabled: true },
-      { value: 120, label: '120cm', price: 400, enabled: true }
+      { value: 50, label: '50cm', price: 10, enabled: true },
+      { value: 55, label: '55cm', price: 50, enabled: true },
+      { value: 60, label: '60cm', price: 100, enabled: true },
+      { value: 65, label: '65cm', price: 150, enabled: true },
+      { value: 70, label: '70cm', price: 200, enabled: true },
+      { value: 75, label: '75cm', price: 250, enabled: true },
+      { value: 80, label: '80cm', price: 300, enabled: true },
+      { value: 90, label: '90cm', price: 350, enabled: true },
+      { value: 100, label: '100cm', price: 400, enabled: true },
+      { value: 110, label: '110cm', price: 500, enabled: true },
+      { value: 120, label: '120cm', price: 600, enabled: true }
     ],
     circumferences: [
-      { value: 6, label: '6cm (Muito Fina)', price: 20, enabled: true },
-      { value: 8, label: '8cm (Fina)', price: 30, enabled: true },
-      { value: 10, label: '10cm (Média-Fina)', price: 50, enabled: true },
-      { value: 12, label: '12cm (Média)', price: 70, enabled: true },
-      { value: 14, label: '14cm (Média-Grossa)', price: 90, enabled: true },
-      { value: 16, label: '16cm (Grossa)', price: 120, enabled: true }
+      { value: 6, label: '6cm', price: 0, enabled: true },
+      { value: 7, label: '7cm', price: 30, enabled: true },
+      { value: 8, label: '8cm', price: 50, enabled: true },
+      { value: 9, label: '9cm', price: 70, enabled: true },
+      { value: 10, label: '10cm', price: 130, enabled: true },
+      { value: 11, label: '11cm', price: 150, enabled: true },
+      { value: 12, label: '12cm', price: 200, enabled: true },
+      { value: 13, label: '13cm', price: 230, enabled: true },
+      { value: 14, label: '14cm', price: 270, enabled: true },
+      { value: 15, label: '15cm', price: 350, enabled: true },
+      { value: 16, label: '16cm', price: 450, enabled: true }
     ],
     qualities: [
-      { value: 'basica', label: 'Básica', price: 0, enabled: true },
-      { value: 'premium', label: 'Premium', price: 100, enabled: true },
-      { value: 'luxo', label: 'Luxo', price: 200, enabled: true }
+      { value: 'excelente', label: 'Excelente - Fios Finos', price: 40, enabled: true },
+      { value: 'bom', label: 'Bom - Fios Grossos', price: 20, enabled: true },
+      { value: 'ruim', label: 'Ruim - Com Ponta Dupla, Frizz e Outros', price: 0, enabled: true }
     ],
-    maxPriceLimit: 1000,
+    maxPriceLimit: 2000,
     monthlyGoal: 5000
   }));
   
