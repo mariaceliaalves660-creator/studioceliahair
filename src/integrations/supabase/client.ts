@@ -1,31 +1,32 @@
-import { createClient } from '@supabase/supabase-js';
+// Mock Supabase client - não faz requisições HTTP reais para evitar erro 401
+// Retorna sempre respostas vazias/nulas de forma síncrona
 
-interface ImportMetaEnv {
-  VITE_SUPABASE_URL?: string;
-  VITE_SUPABASE_ANON_KEY?: string;
-  // add other env variables here as needed
-}
-
-declare global {
-  interface ImportMeta {
-    readonly env: ImportMetaEnv;
-  }
-}
-
-// Fallback para valores seguros
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://dummy.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1bW15IiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImlhdCI6MTYwMDAwMDAwMCwiZXhwIjoxOTAwMDAwMDAwfQ.dummy';
-
-// Criar cliente desabilitado se não houver credenciais reais
-const hasValidCredentials = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+const mockSupabaseClient = {
+  from: (table: string) => ({
+    select: (columns?: string) => Promise.resolve({ data: [], error: null }),
+    insert: (data: any) => Promise.resolve({ data: null, error: null }),
+    update: (data: any) => Promise.resolve({ data: null, error: null }),
+    delete: () => Promise.resolve({ data: null, error: null }),
+    eq: (column: string, value: any) => ({
+      select: () => Promise.resolve({ data: [], error: null }),
+      update: (data: any) => Promise.resolve({ data: null, error: null }),
+      delete: () => Promise.resolve({ data: null, error: null }),
+    }),
+  }),
   auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
+    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    signIn: (credentials: any) => Promise.resolve({ data: null, error: null }),
+    signOut: () => Promise.resolve({ error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
   },
-  global: {
-    headers: hasValidCredentials ? {} : { 'X-Client-Info': 'disabled' }
-  }
-});
+  storage: {
+    from: (bucket: string) => ({
+      upload: (path: string, file: File) => Promise.resolve({ data: { path }, error: null }),
+      getPublicUrl: (path: string) => ({ data: { publicUrl: `https://mock-storage.local/${path}` } }),
+      download: (path: string) => Promise.resolve({ data: null, error: null }),
+      remove: (paths: string[]) => Promise.resolve({ data: null, error: null }),
+    }),
+  },
+};
+
+export const supabase = mockSupabaseClient as any;
