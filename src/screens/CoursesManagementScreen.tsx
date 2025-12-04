@@ -4,11 +4,35 @@ import { TrendingUp, BookOpen, Plus, Users, ShoppingBag, Edit2, Camera, Trash2, 
 import { Course, CourseModule, CourseLesson, Student, Client, Sale } from '../types';
 
 export const CoursesManagementScreen: React.FC = () => {
+  const dataContext = useData();
+  
+  // Proteção contra contexto não carregado
+  if (!dataContext) {
+    return (
+      <div className="p-4 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
   const { 
-    courses, addCourse, updateCourse, removeCourse,
-    students, addStudent, updateStudent, removeStudent,
-    sales, clients, addClient, addSale, currentAdmin
-  } = useData();
+    courses = [], 
+    addCourse, 
+    updateCourse, 
+    removeCourse,
+    students = [], 
+    addStudent, 
+    updateStudent, 
+    removeStudent,
+    sales = [], 
+    clients = [], 
+    addClient, 
+    addSale, 
+    currentAdmin
+  } = dataContext;
 
   const [view, setView] = useState<'dashboard' | 'list' | 'edit' | 'content' | 'sales' | 'students'>('dashboard');
   
@@ -55,12 +79,12 @@ export const CoursesManagementScreen: React.FC = () => {
   const [stdCourses, setStdCourses] = useState<string[]>([]);
 
   // Analytics
-  const courseSales = sales.filter(s => s.items.some(i => i.type === 'course'));
+  const courseSales = sales?.filter(s => s?.items?.some(i => i?.type === 'course')) || [];
   const totalCourseRevenue = courseSales.reduce((acc, sale) => {
-      const courseTotal = sale.items.filter(i => i.type === 'course').reduce((s, i) => s + (i.price * i.quantity), 0);
+      const courseTotal = sale?.items?.filter(i => i?.type === 'course').reduce((s, i) => s + ((i?.price || 0) * (i?.quantity || 0)), 0) || 0;
       return acc + courseTotal;
   }, 0);
-  const totalStudentsEnrolled = students.length;
+  const totalStudentsEnrolled = students?.length || 0;
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, setter: (s: string) => void) => {
     const file = e.target.files?.[0];
@@ -174,6 +198,20 @@ export const CoursesManagementScreen: React.FC = () => {
   };
 
   // --- LESSON ACTIONS ---
+  // Upload de arquivo (converte para base64 para armazenamento local)
+  const uploadCourseFile = async (file: File, courseId: string, moduleId: string, lessonId: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = () => {
+        reject(new Error('Erro ao ler arquivo'));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleSaveLesson = async () => { // Made async
     if (!editingCourse || !activeModuleId || !lessonTitle) return;
 
@@ -187,7 +225,7 @@ export const CoursesManagementScreen: React.FC = () => {
             finalLessonUrl = await uploadCourseFile(selectedLessonFile, editingCourse.id, activeModuleId, editingLessonId || `les-${Date.now()}`);
             finalFileName = selectedLessonFile.name;
             finalLessonContent = ''; // Clear content if uploading video
-        } catch (error) {
+        } catch (error: any) {
             alert(`Erro ao fazer upload do vídeo: ${error.message}`);
             setUploadingFile(false);
             return;
@@ -398,9 +436,9 @@ export const CoursesManagementScreen: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {courses.map(c => {
-                    const enrolledCount = students.filter(s => s.enrolledCourseIds.includes(c.id)).length;
-                    const percentFull = c.maxStudents ? (enrolledCount / c.maxStudents) * 100 : 0;
+                {(courses || []).map(c => {
+                    const enrolledCount = (students || []).filter(s => s?.enrolledCourseIds?.includes(c?.id)).length;
+                    const percentFull = c?.maxStudents ? (enrolledCount / c.maxStudents) * 100 : 0;
 
                     return (
                     <div key={c.id} className="bg-white border rounded-xl p-4 shadow-sm flex flex-col justify-between hover:shadow-md transition">
@@ -724,9 +762,9 @@ export const CoursesManagementScreen: React.FC = () => {
             </div>
 
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm overflow-y-auto max-h-[600px]">
-                <h4 className="font-bold text-gray-700 mb-4 flex items-center"><Users size={20} className="mr-2 text-blue-500"/> Alunos Cadastrados ({students.length})</h4>
+                <h4 className="font-bold text-gray-700 mb-4 flex items-center"><Users size={20} className="mr-2 text-blue-500"/> Alunos Cadastrados ({students?.length || 0})</h4>
                 <div className="space-y-3">
-                    {students.map(s => (
+                    {(students || []).map(s => (
                         <div key={s.id} className="p-4 border rounded-lg hover:shadow-md transition bg-white">
                             <div className="flex justify-between items-start">
                                 <div>
@@ -742,8 +780,8 @@ export const CoursesManagementScreen: React.FC = () => {
                             <div className="mt-3 pt-3 border-t border-gray-100">
                                 <span className="text-xs font-bold text-gray-400 uppercase">Cursos Matriculados:</span>
                                 <div className="flex flex-wrap gap-1 mt-1">
-                                    {s.enrolledCourseIds.length > 0 ? (
-                                        s.enrolledCourseIds.map(cid => {
+                                    {(s?.enrolledCourseIds?.length || 0) > 0 ? (
+                                        (s?.enrolledCourseIds || []).map(cid => {
                                             const cName = courses.find(c => c.id === cid)?.title || 'Curso Removido';
                                             return <span key={cid} className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100">{cName}</span>;
                                         })
