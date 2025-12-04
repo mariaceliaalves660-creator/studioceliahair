@@ -19,6 +19,9 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      build: {
+        chunkSizeWarningLimit: 1000, // Aumenta o limite para 1000 KB (1 MB)
       }
     };
 });
