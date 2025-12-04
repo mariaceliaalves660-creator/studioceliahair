@@ -15,8 +15,16 @@ export const ServicesScreen: React.FC = () => {
     category: ''
   });
 
-  // Service Categories - same as in SalesScreen
-  const serviceCategories = [
+  // NEW: States for category management
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [customCategories, setCustomCategories] = useState<Array<{id: string, name: string}>>(() => {
+    const stored = localStorage.getItem('serviceCategories');
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  // Service Categories - Default + Custom
+  const defaultCategories = [
     { id: 'cabelos_corte', name: '💇‍♀️ Cabelos - Cortes e Finalizações' },
     { id: 'coloracao', name: '🎨 Coloração e Química Capilar' },
     { id: 'tratamentos', name: '💆‍♀️ Tratamentos Capilares' },
@@ -28,6 +36,8 @@ export const ServicesScreen: React.FC = () => {
     { id: 'maquiagem', name: '💄 Maquiagem' },
     { id: 'estetica', name: '💆‍♀️ Estética Facial e Corporal' }
   ];
+
+  const serviceCategories = [...defaultCategories, ...customCategories];
 
   const openModal = (service?: Service, categoryId?: string) => {
     if (service) {
@@ -49,6 +59,30 @@ export const ServicesScreen: React.FC = () => {
     setShowModal(false);
     setEditingService(null);
     setFormData({ name: '', price: '', durationMinutes: '', category: '' });
+    setShowAddCategory(false);
+    setNewCategoryName('');
+  };
+
+  const handleAddCategory = () => {
+    if (!newCategoryName.trim()) {
+      alert('Digite o nome da categoria');
+      return;
+    }
+
+    const categoryId = newCategoryName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    const newCategory = {
+      id: `custom_${categoryId}_${Date.now()}`,
+      name: newCategoryName.trim()
+    };
+
+    const updatedCategories = [...customCategories, newCategory];
+    setCustomCategories(updatedCategories);
+    localStorage.setItem('serviceCategories', JSON.stringify(updatedCategories));
+    
+    // Set the new category as selected
+    setFormData({ ...formData, category: newCategory.id });
+    setShowAddCategory(false);
+    setNewCategoryName('');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -230,20 +264,64 @@ export const ServicesScreen: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Categoria *
-                </label>
-                <select
-                  className="w-full p-2 border rounded-lg"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  required
-                >
-                  <option value="">Selecione a categoria...</option>
-                  {serviceCategories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Categoria *
+                  </label>
+                  {!showAddCategory && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCategory(true)}
+                      className="text-xs text-rose-600 hover:text-rose-700 font-medium flex items-center"
+                    >
+                      <Plus size={14} className="mr-1" /> Nova Categoria
+                    </button>
+                  )}
+                </div>
+
+                {showAddCategory ? (
+                  <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 space-y-2">
+                    <input
+                      type="text"
+                      className="w-full p-2 border rounded-lg"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="Nome da nova categoria..."
+                      autoFocus
+                    />
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={handleAddCategory}
+                        className="flex-1 bg-rose-600 text-white py-2 rounded-lg hover:bg-rose-700 text-sm font-medium"
+                      >
+                        Adicionar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowAddCategory(false);
+                          setNewCategoryName('');
+                        }}
+                        className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 text-sm font-medium"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <select
+                    className="w-full p-2 border rounded-lg"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    required
+                  >
+                    <option value="">Selecione a categoria...</option>
+                    {serviceCategories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div>

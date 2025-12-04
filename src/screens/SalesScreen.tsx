@@ -22,19 +22,28 @@ export const SalesScreen: React.FC = () => {
   const [quantity, setQuantity] = useState('1');
   const [selectedUnit, setSelectedUnit] = useState<UnitType>('un');
 
-  // Service Categories
-  const serviceCategories = [
-    { id: 'cabelos_corte', name: '💇‍♀️ Cabelos - Cortes e Finalizações', icon: '💇‍♀️' },
-    { id: 'coloracao', name: '🎨 Coloração e Química Capilar', icon: '🎨' },
-    { id: 'tratamentos', name: '💆‍♀️ Tratamentos Capilares', icon: '💆‍♀️' },
-    { id: 'alisamentos', name: '🔥 Alisamentos', icon: '🔥' },
-    { id: 'mega_hair', name: '💇‍♀️ Mega Hair / Extensões', icon: '💇‍♀️' },
-    { id: 'sobrancelhas', name: '👁️ Design de Sobrancelhas', icon: '👁️' },
-    { id: 'cilios', name: '✨ Cílios', icon: '✨' },
-    { id: 'unhas', name: '💅 Unhas - Manicure e Pedicure', icon: '💅' },
-    { id: 'maquiagem', name: '💄 Maquiagem', icon: '💄' },
-    { id: 'estetica', name: '💆‍♀️ Estética Facial e Corporal', icon: '💆‍♀️' }
-  ];
+  // Service Categories - Load from localStorage to include custom categories
+  const getServiceCategories = () => {
+    const defaultCategories = [
+      { id: 'cabelos_corte', name: '💇‍♀️ Cabelos - Cortes e Finalizações', icon: '💇‍♀️' },
+      { id: 'coloracao', name: '🎨 Coloração e Química Capilar', icon: '🎨' },
+      { id: 'tratamentos', name: '💆‍♀️ Tratamentos Capilares', icon: '💆‍♀️' },
+      { id: 'alisamentos', name: '🔥 Alisamentos', icon: '🔥' },
+      { id: 'mega_hair', name: '💇‍♀️ Mega Hair / Extensões', icon: '💇‍♀️' },
+      { id: 'sobrancelhas', name: '👁️ Design de Sobrancelhas', icon: '👁️' },
+      { id: 'cilios', name: '✨ Cílios', icon: '✨' },
+      { id: 'unhas', name: '💅 Unhas - Manicure e Pedicure', icon: '💅' },
+      { id: 'maquiagem', name: '💄 Maquiagem', icon: '💄' },
+      { id: 'estetica', name: '💆‍♀️ Estética Facial e Corporal', icon: '💆‍♀️' }
+    ];
+    
+    const stored = localStorage.getItem('serviceCategories');
+    const customCategories = stored ? JSON.parse(stored) : [];
+    
+    return [...defaultCategories, ...customCategories.map((cat: any) => ({ ...cat, icon: '📁' }))];
+  };
+
+  const serviceCategories = getServiceCategories();
 
   // Filter services by selected category
   const filteredServices = selectedServiceCategory
