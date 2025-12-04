@@ -82,9 +82,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentAdmin, setCurrentAdmin] = useState(null);
   const [loggedInClient, setLoggedInClient] = useState(null);
   
-  const [socialUsers] = useState([
-    { id: '1', username: 'avaliador1', password: '123456', name: 'Avaliador Teste' }
+  const [socialUsers, setSocialUsers] = useState([
+    { id: '1', username: 'avaliador1', password: '123456', name: 'Avaliador Teste', fullName: 'Avaliador Teste', cpf: '', address: '', unit: '' }
   ]);
+  
+  const addSocialUser = (user: any) => {
+    setSocialUsers([...socialUsers, { ...user, id: Date.now().toString() }]);
+  };
+  
+  const updateSocialUser = (user: any) => {
+    setSocialUsers(socialUsers.map(u => u.id === user.id ? user : u));
+  };
+  
+  const removeSocialUser = (id: string) => {
+    setSocialUsers(socialUsers.filter(u => u.id !== id));
+  };
   
   const [adminUsers, setAdminUsers] = useState([
     { id: '1', email: 'admin@celia.com', password: 'admin123', name: 'Admin Célia', role: 'admin' }
@@ -214,6 +226,46 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const addOrder = (order: any) => {
     setOrders([...orders, { ...order, id: Date.now().toString() }]);
+  };
+  
+  const updateOrder = (order: any, adminId?: string, adminName?: string) => {
+    // Se o pedido foi aceito/concluído, registrar no caixa e adicionar pontos
+    if (order.status === 'completed') {
+      // Encontrar o cliente
+      const client = clients.find(c => c.email === order.customerEmail || c.phone === order.customerWhatsapp);
+      
+      // Adicionar venda no caixa
+      const newSale = {
+        id: `sale-${Date.now()}`,
+        date: new Date().toISOString(),
+        items: order.items.map((item: any) => ({
+          ...item,
+          type: 'product',
+          id: item.productId || `prod-${Date.now()}`,
+          name: item.productName,
+          staffId: adminId || ''
+        })),
+        total: order.total,
+        paymentMethod: order.deliveryType === 'delivery' ? 'pix' : 'dinheiro',
+        clientId: client?.id,
+        createdBy: adminId,
+        createdByName: adminName || 'Admin'
+      };
+      
+      setSales([...sales, newSale]);
+      
+      // Adicionar pontos de fidelidade (1 ponto por R$1)
+      if (client) {
+        const pointsToAdd = Math.floor(order.total);
+        // Pontos são calculados automaticamente nas telas de cliente baseado em sales
+      }
+    }
+    
+    setOrders(orders.map(o => o.id === order.id ? order : o));
+  };
+  
+  const removeOrder = (id: string) => {
+    setOrders(orders.filter(o => o.id !== id));
   };
   
   // Stored Hair
@@ -415,6 +467,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Authentication
     socialUsers,
+    addSocialUser,
+    updateSocialUser,
+    removeSocialUser,
     setCurrentUser,
     currentUser,
     adminUsers,
@@ -450,6 +505,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Orders
     orders,
     addOrder,
+    updateOrder,
+    removeOrder,
     
     // Sales
     sales,

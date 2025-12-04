@@ -6,7 +6,7 @@ import { ShoppingBag, Clock, CheckCircle, MapPin, Phone, Truck, XCircle, Chevron
 import { Order } from '../types';
 
 export const OrdersScreen: React.FC = () => {
-  const { orders, updateOrder, currentAdmin } = useData(); // Obter currentAdmin
+  const { orders, updateOrder, removeOrder, currentAdmin } = useData();
   const [filter, setFilter] = useState<'pending' | 'completed' | 'all'>('pending');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
@@ -123,27 +123,27 @@ export const OrdersScreen: React.FC = () => {
                     {/* Actions */}
                     <div className="flex gap-2 mt-4">
                        {order.status === 'pending' && (
-                          <button 
-                             onClick={(e) => { e.stopPropagation(); handleStatusChange(order, 'processing'); }}
-                             className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 flex items-center justify-center"
-                          >
-                             <Clock size={16} className="mr-2" /> Aceitar / Preparar
-                          </button>
+                          <>
+                             <button 
+                                onClick={(e) => { e.stopPropagation(); handleStatusChange(order, 'completed'); }}
+                                className="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-700 flex items-center justify-center"
+                             >
+                                <CheckCircle size={16} className="mr-2" /> Aceitar Pedido
+                             </button>
+                             <button 
+                                onClick={(e) => { e.stopPropagation(); if(confirm('Deseja excluir este pedido?')) { removeOrder(order.id); } }}
+                                className="px-6 bg-red-600 text-white py-2 rounded-lg font-bold hover:bg-red-700 flex items-center justify-center"
+                             >
+                                <XCircle size={16} className="mr-2" /> Excluir
+                             </button>
+                          </>
                        )}
-                       {(order.status === 'pending' || order.status === 'processing') && (
+                       {order.status === 'processing' && (
                           <button 
                              onClick={(e) => { e.stopPropagation(); handleStatusChange(order, 'completed'); }}
                              className="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-700 flex items-center justify-center"
                           >
                              <CheckCircle size={16} className="mr-2" /> Concluir Pedido
-                          </button>
-                       )}
-                       {order.status !== 'cancelled' && order.status !== 'completed' && (
-                          <button 
-                             onClick={(e) => { e.stopPropagation(); handleStatusChange(order, 'cancelled'); }}
-                             className="px-4 bg-red-100 text-red-700 rounded-lg font-bold hover:bg-red-200"
-                          >
-                             <XCircle size={20} />
                           </button>
                        )}
                     </div>

@@ -24,7 +24,6 @@ export const HomeScreen: React.FC<HomeProps> = ({ onNavigate }) => {
     { id: 'courses-management', label: 'Gestão Cursos', icon: GraduationCap, color: 'from-indigo-500 to-purple-600' },
     { id: 'stored-hair', label: 'Cabelos Guardados', icon: Scissors, color: 'from-pink-600 to-rose-700' },
     { id: 'hair-business', label: 'Negócio Cabelos', icon: Globe, color: 'from-purple-600 to-indigo-700' },
-    { id: 'ai-studio', label: 'IA Studio', icon: Palette, color: 'from-violet-500 to-fuchsia-600' },
     { id: 'manager', label: 'Gerenciamento', icon: Settings, color: 'from-gray-700 to-gray-900' },
   ];
 
