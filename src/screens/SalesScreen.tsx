@@ -7,9 +7,13 @@ export const SalesScreen: React.FC = () => {
   const { services, products, staff, clients, addSale, currentAdmin } = useData();
   
   const [selectedClientId, setSelectedClientId] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'dinheiro' | 'cartao' | 'pix'>('dinheiro');
+  const [paymentMethod, setPaymentMethod] = useState<'dinheiro' | 'cartao' | 'pix' | 'misto'>('dinheiro');
   const [cart, setCart] = useState<SaleItem[]>([]);
   const [successMsg, setSuccessMsg] = useState('');
+  
+  // Mixed payment states
+  const [cashAmount, setCashAmount] = useState('');
+  const [cardAmount, setCardAmount] = useState('');
 
   // Add Item Logic
   const [addItemType, setAddItemType] = useState<'service' | 'product'>('service');
@@ -213,6 +217,23 @@ export const SalesScreen: React.FC = () => {
         return;
     }
 
+    // Validate mixed payment
+    if (paymentMethod === 'misto') {
+      const cash = parseFloat(cashAmount) || 0;
+      const card = parseFloat(cardAmount) || 0;
+      const totalPaid = cash + card;
+      
+      if (totalPaid !== total) {
+        alert(`O total do pagamento misto (R$ ${totalPaid.toFixed(2)}) deve ser igual ao total da venda (R$ ${total.toFixed(2)})`);
+        return;
+      }
+      
+      if (cash <= 0 || card <= 0) {
+        alert("No pagamento misto, tanto o valor em dinheiro quanto o valor no cartão devem ser maiores que zero.");
+        return;
+      }
+    }
+
     const client = clients.find(c => c.id === selectedClientId);
     
     const newSale: Sale = {
@@ -223,6 +244,12 @@ export const SalesScreen: React.FC = () => {
       items: cart,
       total,
       paymentMethod,
+      ...(paymentMethod === 'misto' && {
+        mixedPayment: {
+          cash: parseFloat(cashAmount) || 0,
+          card: parseFloat(cardAmount) || 0
+        }
+      }),
       createdBy: currentAdmin?.id,
       createdByName: currentAdmin?.name || 'Sistema'
     };
@@ -231,6 +258,8 @@ export const SalesScreen: React.FC = () => {
     setSuccessMsg('Venda realizada com sucesso!');
     setCart([]);
     setSelectedClientId('');
+    setCashAmount('');
+    setCardAmount('');
     setTimeout(() => setSuccessMsg(''), 3000);
   };
 
@@ -491,11 +520,17 @@ export const SalesScreen: React.FC = () => {
       {/* Payment */}
       <div className="mb-20">
         <label className="block text-sm font-medium text-gray-700 mb-3">Forma de Pagamento</label>
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {(['dinheiro', 'cartao', 'pix'] as const).map(method => (
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {(['dinheiro', 'cartao', 'pix', 'misto'] as const).map(method => (
             <button
               key={method}
-              onClick={() => setPaymentMethod(method)}
+              onClick={() => {
+                setPaymentMethod(method);
+                if (method !== 'misto') {
+                  setCashAmount('');
+                  setCardAmount('');
+                }
+              }}
               className={`py-3 rounded-xl border capitalize font-medium transition-all ${
                 paymentMethod === method 
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-md transform scale-[1.02]' 
@@ -506,6 +541,59 @@ export const SalesScreen: React.FC = () => {
             </button>
           ))}
         </div>
+
+        {/* Mixed Payment Fields */}
+        {paymentMethod === 'misto' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-amber-900">💰 Pagamento Misto</span>
+              <span className="text-xs text-amber-700">Total: R$ {total.toFixed(2)}</span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Dinheiro (R$)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="w-full p-2 border border-gray-300 rounded-lg bg-white"
+                  value={cashAmount}
+                  onChange={e => setCashAmount(e.target.value)}
+                  placeholder="0,00"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Cartão (R$)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="w-full p-2 border border-gray-300 rounded-lg bg-white"
+                  value={cardAmount}
+                  onChange={e => setCardAmount(e.target.value)}
+                  placeholder="0,00"
+                />
+              </div>
+            </div>
+            
+            {(cashAmount || cardAmount) && (
+              <div className="bg-white rounded-lg p-2 border border-amber-300">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal:</span>
+                  <span className={`font-bold ${
+                    (parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0) === total
+                      ? 'text-emerald-600'
+                      : 'text-red-600'
+                  }`}>
+                    R$ {((parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0)).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <button 
           onClick={handleFinishSale}

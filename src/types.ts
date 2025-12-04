@@ -142,7 +142,11 @@ export interface Sale {
   customerCpf?: string;
   items: SaleItem[];
   total: number;
-  paymentMethod: 'dinheiro' | 'cartao' | 'pix';
+  paymentMethod: 'dinheiro' | 'cartao' | 'pix' | 'misto';
+  mixedPayment?: {
+    cash: number;
+    card: number;
+  };
   businessUnit?: 'salon' | 'hair_business';
   createdBy?: string;
   createdByName?: string;

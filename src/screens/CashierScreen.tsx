@@ -502,7 +502,18 @@ export const CashierScreen: React.FC = () => {
                                             {item.staffName && <span className="text-gray-500 ml-1">({item.staffName})</span>} {/* Added staffName */}
                                         </span>
                                     ))}
-                                    <span className="text-gray-400 text-[10px] mt-1">Cliente: {sale.clientName}</span>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <span className="text-gray-400 text-[10px]">Cliente: {sale.clientName}</span>
+                                      <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 capitalize">
+                                        {sale.paymentMethod === 'misto' ? (
+                                          <>
+                                            💰 Dinheiro: R$ {sale.mixedPayment?.cash.toFixed(2)} + 💳 Cartão: R$ {sale.mixedPayment?.card.toFixed(2)}
+                                          </>
+                                        ) : (
+                                          sale.paymentMethod
+                                        )}
+                                      </span>
+                                    </div>
                                 </div>
                              </td>
                              <td className="p-3 text-right font-bold text-green-600">R$ {sale.total.toFixed(2)}</td>
