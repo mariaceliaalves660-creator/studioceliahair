@@ -29,7 +29,7 @@ export const ServicesScreen: React.FC = () => {
     { id: 'estetica', name: '💆‍♀️ Estética Facial e Corporal' }
   ];
 
-  const openModal = (service?: Service) => {
+  const openModal = (service?: Service, categoryId?: string) => {
     if (service) {
       setEditingService(service);
       setFormData({
@@ -40,7 +40,7 @@ export const ServicesScreen: React.FC = () => {
       });
     } else {
       setEditingService(null);
-      setFormData({ name: '', price: '', durationMinutes: '', category: '' });
+      setFormData({ name: '', price: '', durationMinutes: '', category: categoryId || '' });
     }
     setShowModal(true);
   };
@@ -82,11 +82,11 @@ export const ServicesScreen: React.FC = () => {
     }
   };
 
-  // Group services by category
+  // Group services by category (show all categories, even empty ones)
   const servicesByCategory = serviceCategories.map(cat => ({
     ...cat,
     services: services.filter(s => s.category === cat.id)
-  })).filter(cat => cat.services.length > 0);
+  }));
 
   // Services without category
   const uncategorizedServices = services.filter(s => !s.category);
@@ -108,43 +108,59 @@ export const ServicesScreen: React.FC = () => {
       {/* Services by Category */}
       {servicesByCategory.map(category => (
         <div key={category.id} className="mb-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-            {category.name}
-            <span className="ml-2 text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">
-              {category.services.length}
-            </span>
-          </h3>
-          <div className="grid gap-3">
-            {category.services.map((service) => (
-              <div key={service.id} className="bg-white p-4 rounded-xl shadow-sm border border-rose-100 flex justify-between items-center hover:shadow-md transition-shadow">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-800">{service.name}</h4>
-                  {service.durationMinutes && (
-                    <p className="text-xs text-gray-500 mt-1">⏱️ {service.durationMinutes} min</p>
-                  )}
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="bg-rose-50 px-3 py-1 rounded-full text-rose-700 font-bold">
-                    R$ {service.price.toFixed(2)}
-                  </div>
-                  <button
-                    onClick={() => openModal(service)}
-                    className="text-blue-600 hover:text-blue-800 transition-colors"
-                    title="Editar"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(service.id)}
-                    className="text-gray-400 hover:text-red-600 transition-colors"
-                    title="Excluir"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center">
+              {category.name}
+              <span className="ml-2 text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">
+                {category.services.length}
+              </span>
+            </h3>
+            <button
+              onClick={() => openModal(undefined, category.id)}
+              className="bg-rose-100 text-rose-700 px-3 py-1 rounded-lg hover:bg-rose-200 transition-colors flex items-center text-sm font-medium"
+              title={`Adicionar serviço em ${category.name}`}
+            >
+              <Plus size={16} className="mr-1" /> Adicionar
+            </button>
           </div>
+          {category.services.length === 0 ? (
+            <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-6 text-center text-gray-400">
+              <p className="text-sm font-medium">Nenhum serviço nesta categoria</p>
+              <p className="text-xs mt-1">Clique em "+ Adicionar" acima para criar o primeiro</p>
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {category.services.map((service) => (
+                <div key={service.id} className="bg-white p-4 rounded-xl shadow-sm border border-rose-100 flex justify-between items-center hover:shadow-md transition-shadow">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-800">{service.name}</h4>
+                    {service.durationMinutes && (
+                      <p className="text-xs text-gray-500 mt-1">⏱️ {service.durationMinutes} min</p>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-rose-50 px-3 py-1 rounded-full text-rose-700 font-bold">
+                      R$ {service.price.toFixed(2)}
+                    </div>
+                    <button
+                      onClick={() => openModal(service)}
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                      title="Editar"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(service.id)}
+                      className="text-gray-400 hover:text-red-600 transition-colors"
+                      title="Excluir"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ))}
 
