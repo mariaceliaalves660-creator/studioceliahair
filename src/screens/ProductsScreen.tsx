@@ -1222,11 +1222,116 @@ export const ProductsScreen: React.FC = () => {
                 </div>
               )}
 
-              {/* Purchase History */}
+              {/* Services History */}
+              <div>
+                <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
+                  <Scissors size={18} />
+                  Serviços Realizados
+                </h3>
+                {(() => {
+                  const servicesFromSales = sales
+                    .filter(s => s.clientId === loggedInClient.id)
+                    .flatMap(sale => 
+                      sale.items
+                        .filter((item: any) => item.type === 'service')
+                        .map((item: any) => ({
+                          ...item,
+                          saleDate: sale.date,
+                          saleTotal: sale.total
+                        }))
+                    )
+                    .sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
+
+                  return servicesFromSales.length > 0 ? (
+                    <div className="space-y-2">
+                      {servicesFromSales.slice(0, 15).map((service: any, idx: number) => {
+                        const maintenanceKeywords = ['manutenção', 'manutencao', 'retoque', 'reparo', 'mega hair', 'megahair', 'aplique', 'extensão', 'extensao'];
+                        const isMaintenance = maintenanceKeywords.some(kw => service.name.toLowerCase().includes(kw));
+                        
+                        return (
+                          <div key={idx} className={`rounded-lg p-3 ${isMaintenance ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50'}`}>
+                            <div className="flex justify-between items-start mb-1">
+                              <div className="flex items-center gap-2">
+                                <Scissors size={14} className={isMaintenance ? 'text-amber-600' : 'text-pink-500'} />
+                                <span className="text-sm font-semibold text-gray-700">{service.name}</span>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {new Date(service.saleDate).toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-600">Quantidade: {service.quantity}x</span>
+                              <span className="text-sm font-bold text-purple-600">
+                                R$ {(service.price * service.quantity).toFixed(2)}
+                              </span>
+                            </div>
+                            {isMaintenance && (
+                              <div className="mt-2 text-xs text-amber-700 font-semibold">
+                                ⭐ Serviço de Manutenção
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">Nenhum serviço ainda</p>
+                  );
+                })()}
+              </div>
+
+              {/* Products Purchased */}
+              <div>
+                <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
+                  <Package size={18} />
+                  Produtos Comprados
+                </h3>
+                {(() => {
+                  const productsFromSales = sales
+                    .filter(s => s.clientId === loggedInClient.id)
+                    .flatMap(sale => 
+                      sale.items
+                        .filter((item: any) => item.type === 'product')
+                        .map((item: any) => ({
+                          ...item,
+                          saleDate: sale.date
+                        }))
+                    )
+                    .sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
+
+                  return productsFromSales.length > 0 ? (
+                    <div className="space-y-2">
+                      {productsFromSales.slice(0, 15).map((product: any, idx: number) => (
+                        <div key={idx} className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex justify-between items-start mb-1">
+                            <div className="flex items-center gap-2">
+                              <Package size={14} className="text-amber-500" />
+                              <span className="text-sm font-semibold text-gray-700">{product.name}</span>
+                            </div>
+                            <span className="text-xs text-gray-500">
+                              {new Date(product.saleDate).toLocaleDateString('pt-BR')}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600">Quantidade: {product.quantity}x</span>
+                            <span className="text-sm font-bold text-purple-600">
+                              R$ {(product.price * product.quantity).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">Nenhum produto ainda</p>
+                  );
+                })()}
+              </div>
+
+              {/* Full Purchase History */}
               <div>
                 <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
                   <ShoppingBag size={18} />
-                  Histórico de Compras
+                  Histórico Completo de Compras
                 </h3>
                 {sales.filter(s => s.clientId === loggedInClient.id).length > 0 ? (
                   <div className="space-y-2">
@@ -1235,7 +1340,7 @@ export const ProductsScreen: React.FC = () => {
                       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                       .slice(0, 10)
                       .map(sale => (
-                        <div key={sale.id} className="bg-gray-50 rounded-lg p-3">
+                        <div key={sale.id} className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-3">
                           <div className="flex justify-between items-start mb-2">
                             <span className="text-sm font-semibold text-gray-700">
                               {new Date(sale.date).toLocaleDateString('pt-BR')}
@@ -1248,7 +1353,7 @@ export const ProductsScreen: React.FC = () => {
                             {sale.items.map((item: any, idx: number) => (
                               <div key={idx} className="text-xs text-gray-600 flex items-center gap-2">
                                 {item.type === 'service' ? <Scissors size={12} className="text-pink-500" /> : <Package size={12} className="text-amber-500" />}
-                                <span>{item.name} ({item.quantity}x)</span>
+                                <span>{item.name} ({item.quantity}x) - R$ {(item.price * item.quantity).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
