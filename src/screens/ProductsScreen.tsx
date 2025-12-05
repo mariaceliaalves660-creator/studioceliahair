@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { Package, AlertTriangle, Edit2, X, Save, ShoppingCart, Minus, Plus, MapPin, CheckCircle, Camera, Globe, ChevronRight, ShoppingBag, Star, Scissors, ChevronLeft, GraduationCap, Clock, FileText, CheckSquare, Users, LogIn, User, Gift, LogOut, Ticket, Tag, Ban, History, Truck, Box } from 'lucide-react';
+import { Package, AlertTriangle, Edit2, X, Save, ShoppingCart, Minus, Plus, MapPin, CheckCircle, Camera, Globe, ChevronRight, ShoppingBag, Star, Scissors, ChevronLeft, GraduationCap, Clock, FileText, CheckSquare, Users, LogIn, User, Gift, LogOut, Ticket, Tag, Ban, History, Truck, Box, Mail, Phone, Cake } from 'lucide-react';
 import { Product, UnitType, Order, Course, LoyaltyReward } from '../types';
 
 export const ProductsScreen: React.FC = () => {
@@ -32,6 +32,7 @@ export const ProductsScreen: React.FC = () => {
   const [showMyShopModal, setShowMyShopModal] = useState(false);
   const [redemptionSuccess, setRedemptionSuccess] = useState<string | null>(null);
   const [showClientStoredHairModal, setShowClientStoredHairModal] = useState(false); // NEW: State for Client Stored Hair Modal
+  const [showClientProfile, setShowClientProfile] = useState(false); // NEW: State for full client profile
   
   // Product/Course Details Modal State
   const [viewProduct, setViewProduct] = useState<Product | Course | null>(null);
@@ -280,6 +281,43 @@ export const ProductsScreen: React.FC = () => {
       setSelectedImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1);
   };
 
+  // Calculate maintenance status for logged client
+  const maintenanceStatus = loggedInClient ? (() => {
+    const clientSales = sales.filter(s => s.clientId === loggedInClient.id);
+    const maintenanceKeywords = ['manutenção', 'manutencao', 'retoque', 'reparo', 'mega hair', 'megahair', 'aplique', 'extensão', 'extensao'];
+    
+    let closestStatus: 'ok' | 'warning' | 'overdue' | null = null;
+    let minDays = Infinity;
+
+    clientSales.forEach(sale => {
+      sale.items.forEach(item => {
+        if (item.type === 'service') {
+          const isMaintenanceService = maintenanceKeywords.some(kw => 
+            item.name.toLowerCase().includes(kw)
+          );
+          
+          if (isMaintenanceService) {
+            const serviceDate = new Date(sale.date);
+            const nextMaintenance = new Date(serviceDate);
+            nextMaintenance.setMonth(nextMaintenance.getMonth() + 3);
+            
+            const today = new Date();
+            const daysUntil = Math.ceil((nextMaintenance.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (Math.abs(daysUntil) < Math.abs(minDays)) {
+              minDays = daysUntil;
+              if (daysUntil < 0) closestStatus = 'overdue';
+              else if (daysUntil <= 5) closestStatus = 'warning';
+              else closestStatus = 'ok';
+            }
+          }
+        }
+      });
+    });
+
+    return closestStatus;
+  })() : null;
+
   // NEW: handleClientLogin function
   const handleClientLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -314,10 +352,17 @@ export const ProductsScreen: React.FC = () => {
                             <div className="text-xs text-rose-600 font-bold">{clientPoints} Pontos</div>
                         </div>
                         <button 
-                            onClick={() => setShowClientStoredHairModal(true)} // NEW: Button for Client Profile
-                            className="bg-blue-100 text-blue-700 p-2 rounded-full hover:bg-blue-200 transition" 
+                            onClick={() => setShowClientProfile(true)} // NEW: Button for Client Profile
+                            className="bg-blue-100 text-blue-700 p-2 rounded-full hover:bg-blue-200 transition relative" 
                             title="Meu Perfil"
                         >
+                            {maintenanceStatus && (
+                                <span className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
+                                    maintenanceStatus === 'ok' ? 'bg-green-500' :
+                                    maintenanceStatus === 'warning' ? 'bg-yellow-500' :
+                                    'bg-red-500'
+                                }`}></span>
+                            )}
                             <User size={20}/>
                         </button>
                         <button 
@@ -1120,6 +1165,133 @@ export const ProductsScreen: React.FC = () => {
       {/* CLIENT: Stored Hair Modal */}
       {showClientStoredHairModal && loggedInClient && (
         <ClientStoredHair client={loggedInClient} onClose={() => setShowClientStoredHairModal(false)} />
+      )}
+
+      {/* CLIENT: Simple Profile Modal */}
+      {showClientProfile && loggedInClient && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowClientProfile(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-2xl font-bold">Meu Perfil</h2>
+                <button onClick={() => setShowClientProfile(false)} className="hover:bg-white/20 p-2 rounded-full transition">
+                  <X size={24} />
+                </button>
+              </div>
+              <p className="text-xl font-semibold">{loggedInClient.name}</p>
+              <p className="text-sm text-white/80">{loggedInClient.phone}</p>
+              <div className="mt-3 bg-white/20 rounded-lg p-2 inline-block">
+                <span className="text-2xl font-bold">{clientPoints}</span>
+                <span className="text-sm ml-1">pontos</span>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Maintenance Status */}
+              {maintenanceStatus && (
+                <div className={`rounded-xl p-4 border-2 ${
+                  maintenanceStatus === 'ok' ? 'bg-green-50 border-green-200' :
+                  maintenanceStatus === 'warning' ? 'bg-yellow-50 border-yellow-200' :
+                  'bg-red-50 border-red-200'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full ${
+                      maintenanceStatus === 'ok' ? 'bg-green-500' :
+                      maintenanceStatus === 'warning' ? 'bg-yellow-500' :
+                      'bg-red-500'
+                    }`}></div>
+                    <div>
+                      <h3 className={`font-bold ${
+                        maintenanceStatus === 'ok' ? 'text-green-800' :
+                        maintenanceStatus === 'warning' ? 'text-yellow-800' :
+                        'text-red-800'
+                      }`}>
+                        {maintenanceStatus === 'ok' ? '✅ Manutenção em Dia' :
+                         maintenanceStatus === 'warning' ? '⏰ Manutenção Próxima' :
+                         '⚠️ Manutenção Atrasada'}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {maintenanceStatus === 'ok' ? 'Seu cabelo está com a manutenção em dia!' :
+                         maintenanceStatus === 'warning' ? 'Agende sua manutenção nos próximos dias.' :
+                         'Sua manutenção está atrasada. Entre em contato!'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Purchase History */}
+              <div>
+                <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
+                  <ShoppingBag size={18} />
+                  Histórico de Compras
+                </h3>
+                {sales.filter(s => s.clientId === loggedInClient.id).length > 0 ? (
+                  <div className="space-y-2">
+                    {sales
+                      .filter(s => s.clientId === loggedInClient.id)
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                      .slice(0, 10)
+                      .map(sale => (
+                        <div key={sale.id} className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-sm font-semibold text-gray-700">
+                              {new Date(sale.date).toLocaleDateString('pt-BR')}
+                            </span>
+                            <span className="text-sm font-bold text-purple-600">
+                              R$ {sale.total.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            {sale.items.map((item: any, idx: number) => (
+                              <div key={idx} className="text-xs text-gray-600 flex items-center gap-2">
+                                {item.type === 'service' ? <Scissors size={12} className="text-pink-500" /> : <Package size={12} className="text-amber-500" />}
+                                <span>{item.name} ({item.quantity}x)</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">Nenhuma compra ainda</p>
+                )}
+              </div>
+
+              {/* Client Info */}
+              <div>
+                <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
+                  <User size={18} />
+                  Minhas Informações
+                </h3>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  {loggedInClient.email && (
+                    <p className="text-sm text-gray-700 flex items-center gap-2">
+                      <Mail size={14} /> {loggedInClient.email}
+                    </p>
+                  )}
+                  {loggedInClient.phone && (
+                    <p className="text-sm text-gray-700 flex items-center gap-2">
+                      <Phone size={14} /> {loggedInClient.phone}
+                    </p>
+                  )}
+                  {loggedInClient.birthday && (
+                    <p className="text-sm text-gray-700 flex items-center gap-2">
+                      <Cake size={14} /> {loggedInClient.birthday}
+                    </p>
+                  )}
+                  {(loggedInClient.city || loggedInClient.state) && (
+                    <p className="text-sm text-gray-700 flex items-center gap-2">
+                      <MapPin size={14} /> {loggedInClient.city}{loggedInClient.city && loggedInClient.state && ', '}{loggedInClient.state}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
