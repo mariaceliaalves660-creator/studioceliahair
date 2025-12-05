@@ -1,41 +1,37 @@
-export type UnitType = 'unit' | 'kg' | 'g' | 'piece' | 'un';
+export type UnitType = 'un' | 'kg' | 'g';
 export type ViewMode = 'admin' | 'client' | 'social';
 
 export interface Product {
   id: string;
   name: string;
-  description?: string;
   category: string;
   price: number;
   stock: number;
-  unitType: UnitType;
-  unit?: UnitType; // Legacy support
-  image?: string;
+  unit: UnitType;
   imageUrl?: string;
-  images?: string[];
-  origin?: 'store' | 'hair_business';
-  isOnline?: boolean;
-  hairQuoteId?: string;
-  location?: string;
-  specifications?: Record<string, any>;
+  images?: string[]; // NEW: Array for multiple photos (Gallery)
+  origin?: 'store' | 'hair_business'; // To separate financial reports
+  isOnline?: boolean; // NEW: Flag for online visibility
+  hairQuoteId?: string; // NEW: Link back to the origin quote
 }
 
 export interface Service {
   id: string;
   name: string;
-  price: number;
+  price: number; // Estimated price
   durationMinutes?: number;
-  category?: string;
+  category?: string; // NEW: Category for services (e.g., 'Corte', 'Manicure')
 }
 
+// NEW: Course Content Structure
 export interface CourseLesson {
   id: string;
   title: string;
-  type: 'video' | 'pdf' | 'text' | 'upload_video';
-  url?: string;
-  content?: string;
-  duration?: string;
-  fileName?: string;
+  type: 'video' | 'pdf' | 'text' | 'upload_video'; // Added 'text' and 'upload_video'
+  url?: string; // URL for video, PDF, or uploaded video (Supabase Storage URL)
+  content?: string; // NEW: For text-based lessons
+  duration?: string; // e.g. "10:00"
+  fileName?: string; // NEW: To store original file name for uploaded videos/pdfs
 }
 
 export interface CourseModule {
@@ -47,53 +43,44 @@ export interface CourseModule {
 export interface Course {
   id: string;
   title: string;
-  description?: string;
-  workload?: string;
-  duration?: string;
-  format?: 'Presencial' | 'Online' | 'Misto';
-  certificate?: string;
-  materials?: string;
+  workload: string; // e.g. "40h"
+  format: 'Presencial' | 'Online' | 'Misto';
+  certificate: string; // e.g. "Incluso (Digital)"
+  materials: string; // e.g. "Apostila PDF + Kit Prático"
   price: number;
-  image?: string;
   imageUrl?: string;
-  active?: boolean;
-  instructor?: string;
-  maxStudents?: number;
-  modules?: CourseModule[];
-  students?: string[];
-  specifications?: Record<string, any>;
+  active: boolean;
+  maxStudents?: number; // NEW: Capacity limit
+  modules?: CourseModule[]; // NEW: Structured Content
 }
 
+// NEW: Student Interface
 export interface Student {
   id: string;
   name: string;
-  email: string;
+  email: string; // Login
+  password: string; // Login
   phone: string;
-  registrationDate?: Date;
-  enrolledCourseIds?: string[];
-  courses?: string[];
-  progress?: Record<string, number>;
+  enrolledCourseIds: string[]; // List of IDs of courses they have access to
+  progress?: Record<string, number>; // courseId -> percentage
 }
 
 export interface Staff {
   id: string;
   name: string;
-  role: string;
-  commissionRate: number;
+  role: string; // Changed from union type to string to allow custom text
+  commissionRate: number; // Percentage 0-100
 }
 
 export interface Client {
   id: string;
-  user_id?: string;
+  user_id?: string; // References auth.users.id if client has a login
   name: string;
-  email?: string;
   phone: string;
-  birthday?: string;
-  cpf?: string;
-  city?: string;
-  state?: string;
-  history?: Sale[];
-  loyaltyPoints?: number;
+  birthday?: string; // DD/MM
+  // email?: string; // Removed, handled by Supabase Auth
+  // password?: string; // Removed, handled by Supabase Auth
+  history: Sale[]; // IDs of past sales/appointments
 }
 
 export interface PointRedemption {
@@ -103,53 +90,49 @@ export interface PointRedemption {
   rewardTitle: string;
   pointsCost: number;
   date: string;
-  code?: string;
+  code?: string; // NEW: Voucher code generated upon redemption
 }
 
 export interface Appointment {
   id: string;
   clientId: string;
-  clientName: string;
+  clientName: string; // Denormalized for display ease
   clientPhone: string;
-  serviceIds: string[];
-  staffId: string[];
-  date: string;
-  time: string;
+  serviceIds: string[]; // MODIFIED: Now an array of strings
+  staffId: string[]; // MODIFIED: Now an array of strings
+  date: string; // ISO Date string YYYY-MM-DD
+  time: string; // HH:mm
   notes?: string;
   status: 'scheduled' | 'completed' | 'cancelled';
-  createdBy?: string;
-  createdByName?: string;
+  createdBy?: string; // NEW: ID of the admin/user who created the appointment
+  createdByName?: string; // NEW: Name of the admin/user who created the appointment
 }
 
 export interface SaleItem {
-  type: 'product' | 'service' | 'course';
+  type: 'product' | 'service' | 'course'; // Added course
   id: string;
   name: string;
   quantity: number;
-  unit?: string;
-  price: number;
-  staffId: string;
-  staffName: string;
-  origin?: 'store' | 'hair_business';
-  category?: string;
+  unit?: string; // Added unit support
+  price: number; // Unit price
+  staffId: string; // Item-specific staff assignment
+  staffName: string; // Denormalized for display
+  origin?: 'store' | 'hair_business'; // Item-level financial separation
+  category?: string; // NEW: Specific category for the item (e.g., 'Corte', 'Shampoo')
 }
 
 export interface Sale {
   id: string;
-  date: string;
+  date: string; // ISO datetime
   clientId: string;
   clientName: string;
-  customerCpf?: string;
+  customerCpf?: string; // NEW: Track CPF for invoices/courses
   items: SaleItem[];
   total: number;
-  paymentMethod: 'dinheiro' | 'cartao' | 'pix' | 'misto';
-  mixedPayment?: {
-    cash: number;
-    card: number;
-  };
-  businessUnit?: 'salon' | 'hair_business';
-  createdBy?: string;
-  createdByName?: string;
+  paymentMethod: 'dinheiro' | 'cartao' | 'pix';
+  businessUnit?: 'salon' | 'hair_business'; 
+  createdBy?: string; // ID of the user/admin who registered the sale
+  createdByName?: string; // Name of the user/admin
 }
 
 export interface Expense {
@@ -158,7 +141,7 @@ export interface Expense {
   amount: number;
   date: string;
   category: string;
-  businessUnit?: 'salon' | 'hair_business';
+  businessUnit?: 'salon' | 'hair_business'; // NEW: Financial separation
 }
 
 export interface StaffPayment {
@@ -174,35 +157,40 @@ export interface RegisterSession {
   openedAt: string;
   closedAt?: string;
   openingBalance: number;
-  totalIncome?: number;
+  
+  // Historical Snapshots (saved when closing)
+  totalIncome?: number; 
   totalExpenses?: number;
-  calculatedBalance?: number;
-  withdrawnAmount?: number;
-  finalBalance?: number;
+  calculatedBalance?: number; // Opening + Income - Expenses
+  withdrawnAmount?: number; // Sangria
+  finalBalance?: number; // Calculated - Withdrawn (What remains/missing)
+  
   status: 'open' | 'closed';
 }
 
+// NEW: Online Order Interface
 export interface Order {
   id: string;
   date: string;
   customerName: string;
   customerWhatsapp: string;
-  customerCpf?: string;
-  clientId?: string;
+  customerCpf?: string; // NEW: CPF Requirement
+  clientId?: string; // NEW: Link to registered client
   deliveryType: 'pickup' | 'delivery';
-  address?: string;
+  address?: string; // Required if delivery
   items: {
-    productId: string;
+    productId: string; // Can be product or course ID
     productName: string;
     quantity: number;
     unit: string;
     price: number;
-    type?: 'product' | 'course';
+    type?: 'product' | 'course'; // Track type
   }[];
   total: number;
   status: 'pending' | 'processing' | 'completed' | 'cancelled';
 }
 
+// NEW: Detailed Hair Configuration Item
 export interface HairOption {
   id: string;
   label: string;
@@ -211,24 +199,215 @@ export interface HairOption {
   enabled: boolean;
 }
 
+// NEW: Global Calculator Configuration
+export interface HairCalcConfig {
+  textures: HairOption[];
+  colors: HairOption[];
+  conditions: HairOption[];
+  lengths: HairOption[];
+  circumferences: HairOption[];
+  qualities: HairOption[];
+  
+  // Global Limits
+  maxPriceLimit: number;
+  blockPurchaseMessage: string;
+
+  // Goals & Rewards
+  monthlyGoal: number; // Value in R$ to reach
+  monthlyReward: string; // Name of the prize
+}
+
+// NEW: Social User (Evaluator)
+export interface SocialUser {
+  id: string; // This will be a UUID for the social_users table entry
+  user_id: string; // References auth.users.id
+  fullName: string;
+  cpf: string;
+  address: string;
+  unit: string; // e.g. "Unidade Centro"
+  // username: string; // Removed, handled by Supabase Auth
+  // password: string; // Removed, handled by Supabase Auth
+  customConfig?: HairCalcConfig;
+}
+
+// NEW: Admin User (Management)
+export type AdminRole = 'superadmin' | 'manager';
+
+export interface AdminUser {
+  id: string; // This will be a UUID for the admin_users table entry
+  user_id: string; // References auth.users.id
+  name: string;
+  // email: string; // Removed, handled by Supabase Auth
+  // password: string; // Removed, handled by Supabase Auth
+  role: AdminRole;
+  permissions?: string[]; // List of specific screen IDs the user can access
+}
+
+// NEW: Hair Calculation Quote
 export interface HairQuote {
   id: string;
+  evaluatorId: string;
+  evaluatorName: string;
   date: string;
-  clientName: string;
-  clientPhone?: string;
-  location?: string;
-  ageGroup?: string;
-  hairType?: string;
-  quantity?: number;
-  totalPrice?: number;
-  options?: Record<string, any>;
-  status?: 'pending' | 'confirmed' | 'completed';
+  hairType: string;
+  length: number;
+  circumference: number;
+  condition: string;
+  quality: string;
+  totalValue: number;
+  color: string;
+  status: 'quoted' | 'purchased' | 'stock' | 'product_generated' | 'sold'; // Status tracking including lifecycle
+  
+  // NEW: Weight/Gramagem fields
+  weight?: number;
+  weightUnit?: UnitType;
+
+  // Purchase Details (filled if purchased)
+  sellerName?: string;
+  sellerCpf?: string;
+  sellerPix?: string;
+  sellerState?: string; // UF
+  sellerAgeGroup?: 'Criança' | 'Adolescente' | 'Adulto';
+  photos?: {
+    front?: string;
+    side?: string;
+    back?: string;
+  };
+  approvalCode?: string; // NEW: Code for admin to approve
+}
+
+export interface HairPurchaseRules {
+  targetAudience: 'all' | 'specific';
+  specificEvaluatorIds: string[];
 }
 
 export interface LoyaltyReward {
   id: string;
-  name: string;
-  pointsRequired: number;
-  description?: string;
-  discount?: number;
+  title: string;
+  description: string;
+  pointsCost: number;
+  stock?: number; // NEW: Limit number of available rewards
+  limitPerClient?: number; // NEW: Limit redemptions per client
+}
+
+// NEW: Stored Hair Interface
+export interface StoredHair {
+  id: string;
+  clientId: string;
+  clientName: string; // Denormalized for display
+  dateStored: string; // ISO Date string YYYY-MM-DD
+  dateDelivered?: string; // ISO Date string YYYY-MM-DD, when delivered
+  photoUrl?: string; // Main photo
+  weight: number;
+  weightUnit: UnitType;
+  length: number; // in cm
+  status: 'stored' | 'delivered';
+  notes?: string; // Optional notes
+  deliveryCode?: string; // NEW: Code for client to confirm delivery
+}
+
+export interface AppData {
+  services: Service[];
+  products: Product[];
+  courses: Course[]; // NEW
+  students: Student[]; // NEW
+  staff: Staff[];
+  clients: Client[];
+  appointments: Appointment[];
+  sales: Sale[];
+  expenses: Expense[];
+  staffPayments: StaffPayment[];
+  registerSessions: RegisterSession[];
+  orders: Order[];
+  socialUsers: SocialUser[]; 
+  hairQuotes: HairQuote[]; 
+  hairConfig: HairCalcConfig;
+  adminUsers: AdminUser[]; 
+  loyaltyRewards: LoyaltyReward[];
+  pointRedemptions: PointRedemption[]; // NEW
+  storedHair: StoredHair[]; // NEW: Stored Hair
+}
+
+export interface AppContextType extends AppData {
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
+  
+  currentUser: SocialUser | null; // Track logged in social user
+  setCurrentUser: (user: SocialUser | null) => void;
+
+  currentAdmin: AdminUser | null; // Track logged in admin
+  setCurrentAdmin: (user: AdminUser | null) => void;
+
+  loggedInClient: Client | null; // NEW: Track logged in client (Shop)
+  setLoggedInClient: (client: Client | null) => void;
+
+  addService: (service: Service) => void;
+  updateService: (service: Service) => void;
+  removeService: (id: string) => void;
+  
+  addProduct: (product: Product) => void;
+  updateProduct: (product: Product) => void;
+  removeProduct: (id: string) => void;
+
+  addCourse: (course: Course) => void; // NEW
+  updateCourse: (course: Course) => void; // NEW
+  removeCourse: (id: string) => void; // NEW
+
+  addStudent: (student: Student) => void; // NEW
+  updateStudent: (student: Student) => void; // NEW
+  removeStudent: (id: string) => void; // NEW
+
+  addStaff: (staff: Staff) => void;
+  updateStaff: (staff: Staff) => void;
+  removeStaff: (id: string) => void;
+
+  addClient: (client: Client) => void;
+  updateClient: (client: Client) => void;
+  removeClient: (id: string) => void;
+
+  addAppointment: (apt: Appointment) => void;
+  updateAppointment: (apt: Appointment) => void;
+  
+  addSale: (sale: Sale) => void;
+  addExpense: (expense: Expense) => void;
+  
+  addStaffPayment: (payment: StaffPayment) => void;
+
+  // Register management
+  openRegister: (amount: number) => void;
+  closeRegister: (withdrawAmount: number) => void;
+  getCurrentSession: () => RegisterSession | undefined;
+
+  // Order management
+  addOrder: (order: Order) => void;
+  updateOrder: (order: Order, approvedByAdminId?: string, approvedByAdminName?: string) => void;
+
+  // Social/Hair Mgmt
+  addSocialUser: (user: SocialUser) => void;
+  updateSocialUser: (user: SocialUser) => void; 
+  removeSocialUser: (id: string) => void;
+  
+  addHairQuote: (quote: HairQuote) => void;
+  updateHairQuote: (quote: HairQuote) => void;
+  updateHairConfig: (config: HairCalcConfig) => void;
+  registerHairPurchase: (quote: HairQuote) => void;
+  approveHairQuote: (quoteId: string) => void; // NEW: For admin approval
+
+  // Admin Mgmt
+  addAdminUser: (user: AdminUser) => void;
+  updateAdminUser: (user: AdminUser) => void;
+  removeAdminUser: (id: string) => void;
+
+  // Loyalty
+  addLoyaltyReward: (reward: LoyaltyReward) => void;
+  removeLoyaltyReward: (id: string) => void;
+  redeemPoints: (clientId: string, reward: LoyaltyReward) => void; // NEW
+
+  // Stored Hair
+  addStoredHair: (hair: StoredHair) => void; // NEW
+  updateStoredHair: (hair: StoredHair) => void; // NEW
+  removeStoredHair: (id: string) => void; // NEW
+
+  // NEW: Maintenance
+  resetTransactionalData: () => Promise<void>;
 }
