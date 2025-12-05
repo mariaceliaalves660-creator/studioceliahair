@@ -41,6 +41,11 @@ export const ClientProfileScreen: React.FC<ClientProfileScreenProps> = ({ client
     const courses: any[] = [];
 
     clientHistory.sales.forEach(sale => {
+      if (!sale.items || !Array.isArray(sale.items)) {
+        console.warn('⚠️ Venda sem items:', sale.id);
+        return;
+      }
+
       sale.items.forEach(item => {
         const saleInfo = {
           ...item,
@@ -416,10 +421,24 @@ export const ClientProfileScreen: React.FC<ClientProfileScreenProps> = ({ client
         {/* Aba: Histórico de Compras (Produtos) */}
         {activeTab === 'purchases' && (
           <div className="space-y-3">
+            {/* Debug Info */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
+              <p><strong>Debug:</strong></p>
+              <p>Total vendas do cliente: {clientHistory.sales.length}</p>
+              <p>Produtos encontrados: {purchasesByType.products.length}</p>
+              <p>Serviços encontrados: {purchasesByType.services.length}</p>
+              <p>Cursos encontrados: {purchasesByType.courses.length}</p>
+            </div>
+
             {purchasesByType.products.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-8 text-center">
                 <ShoppingBag size={48} className="mx-auto text-gray-300 mb-2" />
                 <p className="text-gray-500">Nenhuma compra de produto</p>
+                <p className="text-xs text-gray-400 mt-2">
+                  {clientHistory.sales.length > 0 
+                    ? 'Este cliente tem vendas mas nenhum produto'
+                    : 'Este cliente ainda não realizou compras'}
+                </p>
               </div>
             ) : (
               purchasesByType.products
@@ -431,11 +450,16 @@ export const ClientProfileScreen: React.FC<ClientProfileScreenProps> = ({ client
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-800">{item.name}</h3>
                         <p className="text-sm text-gray-600">
-                          Quantidade: {item.quantity} {item.unit} • {formatCurrency(item.price * item.quantity)}
+                          Quantidade: {item.quantity} {item.unit || 'un'} • {formatCurrency(item.price * item.quantity)}
                         </p>
                         <p className="text-xs text-gray-400 mt-2">
                           {formatDate(item.saleDate)} • {item.paymentMethod}
                         </p>
+                        {item.category && (
+                          <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                            {item.category}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
