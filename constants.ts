@@ -1,20 +1,52 @@
 import { Service, Product, Staff, Client, Appointment, Sale, Expense, StaffPayment, RegisterSession, Order, SocialUser, HairQuote, HairCalcConfig, AdminUser, Course, Student, LoyaltyReward, PointRedemption, StoredHair } from './types';
 
 export const INITIAL_SERVICES: Service[] = [
-  { id: 's1', name: 'Retirada de Mega', price: 150, category: 'Mega Hair' },
-  { id: 's2', name: 'Aplicação de Mega', price: 300, category: 'Mega Hair' },
-  { id: 's3', name: 'Manutenção de Mega', price: 200, category: 'Mega Hair' },
-  { id: 's4', name: 'Unha (Mão)', price: 35, category: 'Manicure' },
-  { id: 's5', name: 'Unha (Pé)', price: 35, category: 'Manicure' },
-  { id: 's6', name: 'Cílios Fio a Fio', price: 120, category: 'Estética' },
-  { id: 's7', name: 'Coloração', price: 150, category: 'Cabelo' },
-  { id: 's8', name: 'Descoloração', price: 250, category: 'Cabelo' },
-  { id: 's9', name: 'Selagem', price: 180, category: 'Cabelo' },
-  { id: 's10', name: 'Botox Capilar', price: 120, category: 'Cabelo' },
-  { id: 's11', name: 'Hidratação Profunda', price: 80, category: 'Cabelo' },
-  { id: 's12', name: 'Escova', price: 45, category: 'Cabelo' },
-  { id: 's13', name: 'Chapinha', price: 30, category: 'Cabelo' },
-  { id: 's14', name: 'Penteado', price: 150, category: 'Cabelo' },
+  // Mega Hair
+  { id: 's1', name: 'Retirada de Mega', price: 150, category: 'megahair', duration_minutes: 120 },
+  { id: 's2', name: 'Aplicação de Mega', price: 300, category: 'megahair', duration_minutes: 180 },
+  { id: 's3', name: 'Manutenção de Mega', price: 200, category: 'megahair', duration_minutes: 120 },
+  
+  // Manicure
+  { id: 's4', name: 'Unha (Mão)', price: 35, category: 'manicure', duration_minutes: 45 },
+  { id: 's5', name: 'Unha (Pé)', price: 35, category: 'manicure', duration_minutes: 45 },
+  { id: 's15', name: 'Manicure Completa', price: 60, category: 'manicure', duration_minutes: 90 },
+  { id: 's16', name: 'Pedicure Completa', price: 60, category: 'manicure', duration_minutes: 90 },
+  { id: 's17', name: 'Spa dos Pés', price: 80, category: 'manicure', duration_minutes: 60 },
+  
+  // Cílios
+  { id: 's6', name: 'Cílios Fio a Fio', price: 120, category: 'cilios', duration_minutes: 90 },
+  { id: 's18', name: 'Cílios Volume Russo', price: 150, category: 'cilios', duration_minutes: 120 },
+  { id: 's19', name: 'Lifting de Cílios', price: 100, category: 'cilios', duration_minutes: 60 },
+  { id: 's20', name: 'Manutenção de Cílios', price: 80, category: 'cilios', duration_minutes: 60 },
+  
+  // Design de Sobrancelhas
+  { id: 's21', name: 'Design de Sobrancelhas', price: 25, category: 'sobrancelhas', duration_minutes: 30 },
+  { id: 's22', name: 'Henna', price: 35, category: 'sobrancelhas', duration_minutes: 45 },
+  { id: 's23', name: 'Micropigmentação', price: 350, category: 'sobrancelhas', duration_minutes: 120 },
+  { id: 's24', name: 'Retoque de Micropigmentação', price: 200, category: 'sobrancelhas', duration_minutes: 60 },
+  
+  // Depilação
+  { id: 's25', name: 'Buço', price: 15, category: 'depilacao', duration_minutes: 15 },
+  { id: 's26', name: 'Axilas', price: 20, category: 'depilacao', duration_minutes: 20 },
+  { id: 's27', name: 'Pernas Completas', price: 60, category: 'depilacao', duration_minutes: 60 },
+  { id: 's28', name: 'Virilha Completa', price: 50, category: 'depilacao', duration_minutes: 40 },
+  
+  // Cabelo
+  { id: 's7', name: 'Coloração', price: 150, category: 'cabelo', duration_minutes: 90 },
+  { id: 's8', name: 'Descoloração', price: 250, category: 'cabelo', duration_minutes: 120 },
+  { id: 's9', name: 'Selagem', price: 180, category: 'cabelo', duration_minutes: 90 },
+  { id: 's10', name: 'Botox Capilar', price: 120, category: 'cabelo', duration_minutes: 90 },
+  { id: 's11', name: 'Hidratação Profunda', price: 80, category: 'cabelo', duration_minutes: 60 },
+  { id: 's12', name: 'Escova', price: 45, category: 'cabelo', duration_minutes: 45 },
+  { id: 's13', name: 'Chapinha', price: 30, category: 'cabelo', duration_minutes: 30 },
+  { id: 's14', name: 'Penteado', price: 150, category: 'cabelo', duration_minutes: 60 },
+  { id: 's29', name: 'Corte Feminino', price: 50, category: 'cabelo', duration_minutes: 45 },
+  { id: 's30', name: 'Corte Masculino', price: 35, category: 'cabelo', duration_minutes: 30 },
+  
+  // Progressiva
+  { id: 's31', name: 'Progressiva Completa', price: 300, category: 'progressiva', duration_minutes: 180 },
+  { id: 's32', name: 'Escova Progressiva', price: 250, category: 'progressiva', duration_minutes: 150 },
+  { id: 's33', name: 'Reconstrução Capilar', price: 200, category: 'progressiva', duration_minutes: 120 },
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [
