@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, Course, Client, Student, Appointment, HairQuote, Sale, LoyaltyReward } from '../types';
+import { supabase, isSupabaseEnabled } from '../integrations/supabase/client';
 
 type ViewMode = 'client' | 'admin' | 'social';
 
@@ -23,6 +24,29 @@ const loadFromLocalStorage = (key: string, defaultValue: any) => {
   } catch (error) {
     console.error('Error loading from localStorage:', error);
     return defaultValue;
+  }
+};
+
+// Helper to save to both Supabase and localStorage
+const saveToBoth = async (tableName: string, data: any, storageKey: string) => {
+  // Always save to localStorage first (fallback)
+  saveToLocalStorage(storageKey, data);
+  
+  // Try to save to Supabase if enabled
+  if (isSupabaseEnabled() && supabase) {
+    try {
+      const { error } = await supabase
+        .from(tableName)
+        .upsert(Array.isArray(data) ? data : [data]);
+      
+      if (error) {
+        console.warn(`⚠️ Supabase sync failed for ${tableName}:`, error.message);
+      } else {
+        console.log(`✅ Synced ${tableName} to Supabase`);
+      }
+    } catch (err) {
+      console.warn(`⚠️ Failed to sync ${tableName}:`, err);
+    }
   }
 };
 
@@ -636,26 +660,139 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPointRedemptions([...pointRedemptions, { clientId, points, date: new Date() }]);
   };
 
-  // Auto-save to localStorage whenever data changes
-  useEffect(() => { saveToLocalStorage('products', products); }, [products]);
-  useEffect(() => { saveToLocalStorage('courses', courses); }, [courses]);
-  useEffect(() => { saveToLocalStorage('clients', clients); }, [clients]);
-  useEffect(() => { saveToLocalStorage('students', students); }, [students]);
-  useEffect(() => { saveToLocalStorage('appointments', appointments); }, [appointments]);
-  useEffect(() => { saveToLocalStorage('sales', sales); }, [sales]);
-  useEffect(() => { saveToLocalStorage('expenses', expenses); }, [expenses]);
-  useEffect(() => { saveToLocalStorage('services', services); }, [services]);
-  useEffect(() => { saveToLocalStorage('staff', staff); }, [staff]);
-  useEffect(() => { saveToLocalStorage('orders', orders); }, [orders]);
-  useEffect(() => { saveToLocalStorage('socialUsers', socialUsers); }, [socialUsers]);
-  useEffect(() => { saveToLocalStorage('adminUsers', adminUsers); }, [adminUsers]);
-  useEffect(() => { saveToLocalStorage('hairQuotes', hairQuotes); }, [hairQuotes]);
-  useEffect(() => { saveToLocalStorage('hairConfig', hairConfig); }, [hairConfig]);
-  useEffect(() => { saveToLocalStorage('loyaltyRewards', loyaltyRewards); }, [loyaltyRewards]);
-  useEffect(() => { saveToLocalStorage('pointRedemptions', pointRedemptions); }, [pointRedemptions]);
-  useEffect(() => { saveToLocalStorage('cashierSessions', cashierSessions); }, [cashierSessions]);
-  useEffect(() => { saveToLocalStorage('staffPayments', staffPayments); }, [staffPayments]);
-  useEffect(() => { saveToLocalStorage('storedHair', storedHair); }, [storedHair]);
+  // Auto-save to localStorage and Supabase whenever data changes
+  useEffect(() => { saveToBoth('products', products, 'products'); }, [products]);
+  useEffect(() => { saveToBoth('courses', courses, 'courses'); }, [courses]);
+  useEffect(() => { saveToBoth('clients', clients, 'clients'); }, [clients]);
+  useEffect(() => { saveToBoth('students', students, 'students'); }, [students]);
+  useEffect(() => { saveToBoth('appointments', appointments, 'appointments'); }, [appointments]);
+  useEffect(() => { saveToBoth('sales', sales, 'sales'); }, [sales]);
+  useEffect(() => { saveToBoth('expenses', expenses, 'expenses'); }, [expenses]);
+  useEffect(() => { saveToBoth('services', services, 'services'); }, [services]);
+  useEffect(() => { saveToBoth('staff', staff, 'staff'); }, [staff]);
+  useEffect(() => { saveToBoth('orders', orders, 'orders'); }, [orders]);
+  useEffect(() => { saveToLocalStorage('socialUsers', socialUsers); }, [socialUsers]); // Keep local only
+  useEffect(() => { saveToLocalStorage('adminUsers', adminUsers); }, [adminUsers]); // Keep local only
+  useEffect(() => { saveToBoth('hair_quotes', hairQuotes, 'hairQuotes'); }, [hairQuotes]);
+  useEffect(() => { saveToLocalStorage('hairConfig', hairConfig); }, [hairConfig]); // Keep local only
+  useEffect(() => { saveToBoth('loyalty_rewards', loyaltyRewards, 'loyaltyRewards'); }, [loyaltyRewards]);
+  useEffect(() => { saveToBoth('point_redemptions', pointRedemptions, 'pointRedemptions'); }, [pointRedemptions]);
+  useEffect(() => { saveToBoth('cashier_sessions', cashierSessions, 'cashierSessions'); }, [cashierSessions]);
+  useEffect(() => { saveToLocalStorage('staffPayments', staffPayments); }, [staffPayments]); // Keep local only
+  useEffect(() => { saveToLocalStorage('storedHair', storedHair); }, [storedHair]); // Keep local only
+
+  // Real-time subscriptions to Supabase
+  useEffect(() => {
+    if (!isSupabaseEnabled() || !supabase) {
+      console.log('💾 Modo Local: usando apenas localStorage');
+      return;
+    }
+
+    console.log('🔄 Ativando sincronização em tempo real...');
+
+    // Subscribe to all tables
+    const channels: any[] = [];
+
+    const tables = [
+      { name: 'products', setter: setProducts },
+      { name: 'services', setter: setServices },
+      { name: 'clients', setter: setClients },
+      { name: 'staff', setter: setStaff },
+      { name: 'sales', setter: setSales },
+      { name: 'appointments', setter: setAppointments },
+      { name: 'expenses', setter: setExpenses },
+      { name: 'orders', setter: setOrders },
+      { name: 'courses', setter: setCourses },
+      { name: 'students', setter: setStudents },
+      { name: 'hair_quotes', setter: setHairQuotes },
+      { name: 'loyalty_rewards', setter: setLoyaltyRewards },
+      { name: 'point_redemptions', setter: setPointRedemptions },
+      { name: 'cashier_sessions', setter: setCashierSessions },
+    ];
+
+    tables.forEach(({ name, setter }) => {
+      const channel = supabase
+        .channel(`${name}_changes`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: name,
+          },
+          (payload) => {
+            console.log(`🔔 ${name} atualizado:`, payload.eventType);
+            
+            // Reload data from Supabase
+            supabase
+              .from(name)
+              .select('*')
+              .order('created_at', { ascending: false })
+              .then(({ data, error }) => {
+                if (!error && data) {
+                  setter(data as any);
+                  console.log(`✅ ${name} sincronizado (${data.length} itens)`);
+                }
+              });
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log(`✅ Inscrito em ${name}`);
+          }
+        });
+
+      channels.push(channel);
+    });
+
+    // Cleanup subscriptions
+    return () => {
+      console.log('🔌 Desconectando subscriptions...');
+      channels.forEach(channel => {
+        supabase.removeChannel(channel);
+      });
+    };
+  }, []); // Run once on mount
+
+  // Load initial data from Supabase
+  useEffect(() => {
+    if (!isSupabaseEnabled() || !supabase) return;
+
+    console.log('📡 Carregando dados iniciais do Supabase...');
+
+    const loadTable = async (tableName: string, setter: any, storageKey: string) => {
+      try {
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          setter(data);
+          saveToLocalStorage(storageKey, data);
+          console.log(`✅ ${tableName}: ${data.length} itens`);
+        }
+      } catch (err) {
+        console.warn(`⚠️ Erro ao carregar ${tableName}:`, err);
+      }
+    };
+
+    // Load all tables
+    loadTable('products', setProducts, 'products');
+    loadTable('services', setServices, 'services');
+    loadTable('clients', setClients, 'clients');
+    loadTable('staff', setStaff, 'staff');
+    loadTable('sales', setSales, 'sales');
+    loadTable('appointments', setAppointments, 'appointments');
+    loadTable('expenses', setExpenses, 'expenses');
+    loadTable('orders', setOrders, 'orders');
+    loadTable('courses', setCourses, 'courses');
+    loadTable('students', setStudents, 'students');
+    loadTable('hair_quotes', setHairQuotes, 'hairQuotes');
+    loadTable('loyalty_rewards', setLoyaltyRewards, 'loyaltyRewards');
+    loadTable('point_redemptions', setPointRedemptions, 'pointRedemptions');
+    loadTable('cashier_sessions', setCashierSessions, 'cashierSessions');
+  }, []); // Run once on mount
 
   const value: AppContextType = {
     // View Mode
