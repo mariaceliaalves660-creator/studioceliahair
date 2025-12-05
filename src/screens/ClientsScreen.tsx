@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, CheckCircle, ShoppingBag, Box, Tag, Copy } from 'lucide-react'; // Importar Cake
+import { User, Phone, Cake, CalendarClock, X, History, TrendingUp, Crown, Shield, Trophy, Medal, Star, Filter, Scissors, Package, Layers, Infinity, GraduationCap, CheckCircle, ShoppingBag, Box, Tag, Copy, Eye } from 'lucide-react';
+import { ClientProfileScreen } from './ClientProfileScreen';
 
 // Loyalty Tiers Configuration
 const TIERS = [
@@ -34,6 +35,7 @@ export const ClientsScreen: React.FC = () => {
   const [filterTier, setFilterTier] = useState<string>('todos');
   const [rankingMode, setRankingMode] = useState<'general' | 'services' | 'products' | 'courses'>('general');
   const [modalTab, setModalTab] = useState<'history' | 'shop'>('history');
+  const [viewingProfile, setViewingProfile] = useState<string | null>(null); // ID do cliente para ver perfil
 
   // Helper to check if it's the client's birthday month
   const isClientBirthdayMonth = (birthday?: string): boolean => {
@@ -202,6 +204,16 @@ export const ClientsScreen: React.FC = () => {
       }
   };
 
+  // Se estiver visualizando perfil, mostrar tela de perfil
+  if (viewingProfile) {
+    return (
+      <ClientProfileScreen 
+        clientId={viewingProfile} 
+        onBack={() => setViewingProfile(null)} 
+      />
+    );
+  }
+
   return (
     <div className="p-4 pb-20 relative">
       <div className="mb-6">
@@ -312,8 +324,7 @@ export const ClientsScreen: React.FC = () => {
             return (
               <div 
                 key={client.id} 
-                onClick={() => { setSelectedClient(client); setModalTab('history'); }}
-                className={`bg-white p-4 rounded-xl shadow-sm border hover:bg-pink-50/30 transition-all cursor-pointer relative overflow-hidden group ${client.currentTier.name === 'Platinum' ? 'border-cyan-100' : 'border-pink-50'}`}
+                className={`bg-white p-4 rounded-xl shadow-sm border hover:bg-pink-50/30 transition-all relative overflow-hidden group ${client.currentTier.name === 'Platinum' ? 'border-cyan-100' : 'border-pink-50'}`}
               >
                 {/* Rank Badge for top 3 */}
                 {filterTier === 'todos' && index < 3 && (
@@ -325,7 +336,10 @@ export const ClientsScreen: React.FC = () => {
                 )}
 
                 <div className="flex justify-between items-start">
-                  <div className="flex items-start">
+                  <div 
+                    className="flex items-start flex-1 cursor-pointer"
+                    onClick={() => { setSelectedClient(client); setModalTab('history'); }}
+                  >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 border-2 ${client.currentTier.color.replace('text-', 'border-').split(' ')[2] || 'border-gray-100'} bg-white`}>
                        <TierIcon size={20} className={client.currentTier.color.split(' ')[0]} />
                     </div>
@@ -346,13 +360,23 @@ export const ClientsScreen: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="flex flex-col items-end gap-1 mt-1 pr-6">
+                  <div className="flex flex-col items-end gap-2 mt-1 pr-6">
                     <div className="text-right">
                       <div className="text-[10px] text-gray-400 uppercase font-bold">{displayLabel}</div>
                       <div className={`font-bold text-lg ${displayColor}`}>
                          {rankingMode === 'general' ? client.totalPointsAccrued.toLocaleString('pt-BR') + ' pts' : 'R$ ' + displayValue.toFixed(2)}
                       </div>
                     </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setViewingProfile(client.id);
+                      }}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg transition-colors shadow-sm"
+                    >
+                      <Eye size={14} />
+                      Ver Perfil
+                    </button>
                   </div>
                 </div>
               </div>

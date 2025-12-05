@@ -86,6 +86,9 @@ CREATE TABLE IF NOT EXISTS sales (
   business_unit TEXT,
   created_by TEXT,
   created_by_name TEXT,
+  has_maintenance_service BOOLEAN DEFAULT false,
+  maintenance_date TIMESTAMP WITH TIME ZONE,
+  next_maintenance_date TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   FOREIGN KEY (client_id) REFERENCES clients(id)
 );
@@ -281,6 +284,7 @@ CREATE TABLE IF NOT EXISTS service_categories (
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_sales_client_id ON sales(client_id);
 CREATE INDEX IF NOT EXISTS idx_sales_date ON sales(date);
+CREATE INDEX IF NOT EXISTS idx_sales_maintenance ON sales(next_maintenance_date) WHERE has_maintenance_service = true;
 CREATE INDEX IF NOT EXISTS idx_appointments_client_id ON appointments(client_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(date);
 CREATE INDEX IF NOT EXISTS idx_orders_client_id ON orders(client_id);
@@ -379,6 +383,24 @@ ALTER PUBLICATION supabase_realtime ADD TABLE hair_quotes;
 ALTER PUBLICATION supabase_realtime ADD TABLE loyalty_rewards;
 ALTER PUBLICATION supabase_realtime ADD TABLE point_redemptions;
 ALTER PUBLICATION supabase_realtime ADD TABLE service_categories;
+
+-- ============================================
+-- MAINTENANCE ALERTS SYSTEM
+-- ============================================
+-- O sistema detecta automaticamente serviços de manutenção
+-- baseado em palavras-chave no nome do serviço:
+-- - manutenção, manutencao, retoque, reparo, revisão, revisao
+-- - mega hair, megahair, aplique, extensão, extensao
+--
+-- Quando um serviço de manutenção é realizado:
+-- 1. has_maintenance_service é marcado como true
+-- 2. maintenance_date recebe a data da venda
+-- 3. next_maintenance_date é calculada como +3 meses
+--
+-- Alertas são gerados automaticamente:
+-- - 5 dias antes da data de manutenção
+-- - Clientes com manutenção atrasada
+-- - Visível na HomeScreen e no perfil do cliente
 
 -- ============================================
 -- DONE! Your database is ready for real-time sync
