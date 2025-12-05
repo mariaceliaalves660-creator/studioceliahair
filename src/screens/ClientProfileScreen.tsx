@@ -17,51 +17,37 @@ export const ClientProfileScreen: React.FC<ClientProfileScreenProps> = ({ client
   const { clients, sales, appointments, storedHair } = useData();
   const [activeTab, setActiveTab] = useState<TabType>('info');
 
-  console.log('🔍 ClientProfileScreen mounted', { 
-    clientId, 
-    hasClients: !!clients,
-    clientsLength: clients?.length,
-    hasSales: !!sales,
-    hasStoredHair: !!storedHair 
-  });
+  const client = clients?.find(c => c.id === clientId);
 
-  const client = clients.find(c => c.id === clientId);
-
-  if (!clients || !sales) {
+  if (!client) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <button onClick={onBack} className="mb-4 flex items-center gap-2 text-purple-600">
           <ArrowLeft size={20} />
           Voltar
         </button>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-700 font-semibold">Erro ao carregar dados</p>
-          <p className="text-sm text-red-600 mt-2">Os dados do contexto não estão disponíveis</p>
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
+          <p className="text-amber-700 font-semibold">Cliente não encontrado</p>
+          <p className="text-sm text-amber-600 mt-2">ID: {clientId}</p>
         </div>
       </div>
     );
   }
 
-  // Calcular histórico completo
-  const clientHistory = useMemo(() => {
-    if (!client) return { sales: [], appointments: [], storedItems: [] };
+    // Calcular histórico completo
+    const clientHistory = useMemo(() => {
+      if (!client) return { sales: [], appointments: [], storedItems: [] };
 
-    const clientSales = sales.filter(s => s.clientId === clientId);
-    const clientAppointments = appointments.filter(a => a.clientId === clientId);
-    const clientStoredItems = (storedHair || []).filter(h => h.clientId === clientId);
+      const clientSales = (sales || []).filter(s => s.clientId === clientId);
+      const clientAppointments = (appointments || []).filter(a => a.clientId === clientId);
+      const clientStoredItems = (storedHair || []).filter(h => h.clientId === clientId);
 
-    console.log('📊 Client History:', {
-      clientSales: clientSales.length,
-      clientAppointments: clientAppointments.length,
-      clientStoredItems: clientStoredItems.length
-    });
-
-    return {
-      sales: clientSales,
-      appointments: clientAppointments,
-      storedItems: clientStoredItems
-    };
-  }, [client, sales, appointments, storedHair, clientId]);
+      return {
+        sales: clientSales,
+        appointments: clientAppointments,
+        storedItems: clientStoredItems
+      };
+    }, [client, sales, appointments, storedHair, clientId]);
 
   // Separar compras por tipo
   const purchasesByType = useMemo(() => {
