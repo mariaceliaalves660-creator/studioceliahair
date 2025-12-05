@@ -346,18 +346,29 @@ export const SalesScreen: React.FC = () => {
                         </p>
                       </div>
                     ) : (
-                      <select 
-                        className="w-full p-2 border rounded-lg bg-white" 
-                        value={selectedItemId} 
-                        onChange={e => handleItemSelect(e.target.value)}
-                      >
-                        <option value="">Escolha o serviço...</option>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {filteredServices.map(s => (
-                          <option key={s.id} value={s.id}>
-                            {s.name} - R$ {s.price.toFixed(2)}
-                          </option>
+                          <button
+                            key={s.id}
+                            onClick={() => handleItemSelect(s.id)}
+                            className={`p-3 rounded-lg border-2 text-left transition-all ${
+                              selectedItemId === s.id
+                                ? 'border-pink-500 bg-pink-50 shadow-md'
+                                : 'border-gray-200 bg-white hover:border-pink-300 hover:shadow-sm'
+                            }`}
+                          >
+                            <div className="font-semibold text-gray-800">{s.name}</div>
+                            <div className="text-sm text-pink-600 font-bold mt-1">
+                              R$ {s.price.toFixed(2)}
+                            </div>
+                            {s.duration_minutes && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                ⏱️ {s.duration_minutes} min
+                              </div>
+                            )}
+                          </button>
                         ))}
-                      </select>
+                      </div>
                     )}
                   </div>
                 )}
