@@ -20,8 +20,13 @@ import './utils/migrateData'; // Load migration tools into window
 import { Home, ArrowLeft, LogOut, Lock, User, Key, Users, ShoppingBag, GraduationCap, MessageCircle } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { viewMode, setViewMode, socialUsers, setCurrentUser, currentUser, adminUsers, setCurrentAdmin, currentAdmin } = useData();
+  const { viewMode, setViewMode, socialUsers, setCurrentUser, currentUser, adminUsers, setCurrentAdmin, currentAdmin, cashierSessions } = useData();
   const [currentScreen, setCurrentScreen] = useState('home');
+  
+  // Check if there's an open cashier session
+  const hasOpenSession = () => {
+    return cashierSessions?.some((s: any) => s.status === 'open');
+  };
 
   // Setup global navigation function for ManagerScreen quick access
   React.useEffect(() => {
@@ -222,6 +227,11 @@ const AppContent: React.FC = () => {
     // If social mode, restrict to calculator
     if (viewMode === 'social') {
       return <SocialHairCalculatorScreen />;
+    }
+
+    // ADMIN MODE: Force cashier if no open session (except on home or cashier screen)
+    if (viewMode === 'admin' && !hasOpenSession() && currentScreen !== 'home' && currentScreen !== 'cashier') {
+      return <CashierScreen />;
     }
 
     switch (currentScreen) {
