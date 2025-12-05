@@ -15,6 +15,8 @@ import { HairBusinessScreen } from './screens/HairBusinessScreen';
 import { StudentAreaScreen } from './screens/StudentAreaScreen'; 
 import { CoursesManagementScreen } from './screens/CoursesManagementScreen';
 import { StoredHairScreen } from './screens/StoredHairScreen'; // NEW: Import StoredHairScreen
+import { ConnectionStatus } from './components/ConnectionStatus'; // NEW: Connection status indicator
+import './utils/migrateData'; // Load migration tools into window
 import { Home, ArrowLeft, LogOut, Lock, User, Key, Users, ShoppingBag, GraduationCap, MessageCircle } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -262,6 +264,9 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-rose-50 flex justify-center">
+        {/* Connection Status Indicator */}
+        <ConnectionStatus />
+        
         {/* Changed max-w-md to responsive classes: w-full md:max-w-full */}
         <div className="w-full bg-white min-h-screen shadow-2xl relative flex flex-col">
           {/* Header */}

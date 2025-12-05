@@ -1,32 +1,31 @@
-// Mock Supabase client - não faz requisições HTTP reais para evitar erro 401
-// Retorna sempre respostas vazias/nulas de forma síncrona
+import { createClient } from '@supabase/supabase-js';
 
-const mockSupabaseClient = {
-  from: (table: string) => ({
-    select: (columns?: string) => Promise.resolve({ data: [], error: null }),
-    insert: (data: any) => Promise.resolve({ data: null, error: null }),
-    update: (data: any) => Promise.resolve({ data: null, error: null }),
-    delete: () => Promise.resolve({ data: null, error: null }),
-    eq: (column: string, value: any) => ({
-      select: () => Promise.resolve({ data: [], error: null }),
-      update: (data: any) => Promise.resolve({ data: null, error: null }),
-      delete: () => Promise.resolve({ data: null, error: null }),
-    }),
-  }),
-  auth: {
-    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-    signIn: (credentials: any) => Promise.resolve({ data: null, error: null }),
-    signOut: () => Promise.resolve({ error: null }),
-    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-  },
-  storage: {
-    from: (bucket: string) => ({
-      upload: (path: string, file: File) => Promise.resolve({ data: { path }, error: null }),
-      getPublicUrl: (path: string) => ({ data: { publicUrl: `https://mock-storage.local/${path}` } }),
-      download: (path: string) => Promise.resolve({ data: null, error: null }),
-      remove: (paths: string[]) => Promise.resolve({ data: null, error: null }),
-    }),
-  },
-};
+// Get Supabase credentials from environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = mockSupabaseClient as any;
+// Check if credentials are provided
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('⚠️ Supabase credentials not found. Using localStorage fallback mode.');
+  console.warn('To enable cloud sync, create a .env file with:');
+  console.warn('VITE_SUPABASE_URL=https://your-project.supabase.co');
+  console.warn('VITE_SUPABASE_ANON_KEY=your-anon-key');
+}
+
+// Create Supabase client
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10,
+        },
+      },
+    })
+  : null;
+
+// Helper to check if Supabase is enabled
+export const isSupabaseEnabled = () => supabase !== null;
