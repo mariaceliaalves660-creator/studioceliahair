@@ -1074,15 +1074,36 @@ export const HairBusinessScreen: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setNewProductIsOnline(!newProductIsOnline)}>
-                            <div className={`w-5 h-5 rounded border mr-3 flex items-center justify-center ${newProductIsOnline ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300'}`}>
-                                {newProductIsOnline && <CheckSquare size={14} />}
-                            </div>
-                            <div>
-                                <div className="font-bold text-gray-700 text-sm flex items-center">
-                                    <Globe size={14} className="mr-1 text-blue-500"/> Disponível Online
-                                </div>
-                                <div className="text-xs text-gray-500">Exibir no catálogo para clientes?</div>
+                        <div className="space-y-2 mb-4">
+                            <label className="block text-sm font-bold text-gray-700">Tipo de Venda</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setNewProductIsOnline(false)}
+                                    className={`p-3 border-2 rounded-lg text-left transition-all ${!newProductIsOnline ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'}`}
+                                >
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <ShoppingBag size={16} className={!newProductIsOnline ? 'text-purple-600' : 'text-gray-400'} />
+                                        <span className={`font-bold text-sm ${!newProductIsOnline ? 'text-purple-700' : 'text-gray-600'}`}>
+                                            Loja Física
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-gray-500">Entrega imediata (Na hora)</p>
+                                </button>
+                                
+                                <button
+                                    type="button"
+                                    onClick={() => setNewProductIsOnline(true)}
+                                    className={`p-3 border-2 rounded-lg text-left transition-all ${newProductIsOnline ? 'border-pink-500 bg-pink-50' : 'border-gray-200 hover:border-gray-300'}`}
+                                >
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Truck size={16} className={newProductIsOnline ? 'text-pink-600' : 'text-gray-400'} />
+                                        <span className={`font-bold text-sm ${newProductIsOnline ? 'text-pink-700' : 'text-gray-600'}`}>
+                                            Online
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-gray-500">Entrega em 15 dias úteis</p>
+                                </button>
                             </div>
                         </div>
                     </div>

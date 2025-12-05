@@ -8,7 +8,7 @@ export const ProductsScreen: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Tab State: 'store' = General Products, 'hair' = Hair Business, 'courses' = Courses
-  const [categoryTab, setCategoryTab] = useState<'store' | 'hair' | 'courses'>('store');
+  const [categoryTab, setCategoryTab] = useState<'store' | 'hair' | 'hair_online' | 'courses'>('store');
 
   // Admin Edit Product Form States
   const [editName, setEditName] = useState('');
@@ -359,7 +359,13 @@ export const ProductsScreen: React.FC = () => {
                 onClick={() => setCategoryTab('hair')}
                 className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center transition-all whitespace-nowrap ${categoryTab === 'hair' ? 'bg-purple-100 text-purple-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-                <Scissors size={16} className="mr-2"/> Cabelos
+                <Scissors size={16} className="mr-2"/> Cabelo Loja (Na Hora)
+            </button>
+            <button 
+                onClick={() => setCategoryTab('hair_online')}
+                className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center transition-all whitespace-nowrap ${categoryTab === 'hair_online' ? 'bg-pink-100 text-pink-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+                <Truck size={16} className="mr-2"/> Cabelo Online (15 dias)
             </button>
             <button 
                 onClick={() => setCategoryTab('courses')}
@@ -372,7 +378,8 @@ export const ProductsScreen: React.FC = () => {
       {/* PRODUCTS GRID */}
       {categoryTab !== 'courses' ? (
           products.filter(p => {
-            if (categoryTab === 'hair') return p.origin === 'hair_business';
+            if (categoryTab === 'hair') return p.origin === 'hair_business' && !p.isOnline;
+            if (categoryTab === 'hair_online') return p.origin === 'hair_business' && p.isOnline;
             return !p.origin || p.origin === 'store';
           }).length === 0 ? (
               <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
@@ -382,12 +389,15 @@ export const ProductsScreen: React.FC = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {products.filter(p => {
-                    if (categoryTab === 'hair') return p.origin === 'hair_business';
+                    if (categoryTab === 'hair') return p.origin === 'hair_business' && !p.isOnline;
+                    if (categoryTab === 'hair_online') return p.origin === 'hair_business' && p.isOnline;
                     return !p.origin || p.origin === 'store';
                 }).map((product) => {
                 const isLowStock = product.stock <= 5;
                 const isOutOfStock = product.stock <= 0;
                 const badgeText = product.origin === 'hair_business' ? 'VENDIDO' : 'ESGOTADO';
+                const isHairOnline = product.origin === 'hair_business' && product.isOnline;
+                const isHairStore = product.origin === 'hair_business' && !product.isOnline;
 
                 return (
                     <div 
@@ -401,6 +411,18 @@ export const ProductsScreen: React.FC = () => {
                         alt={product.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
+                        
+                        {/* Badge de Categoria de Cabelo */}
+                        {isHairOnline && (
+                            <span className="absolute top-2 left-2 bg-pink-500 text-white px-2 py-1 rounded text-xs font-bold shadow-lg z-10 flex items-center gap-1">
+                                <Truck size={12} /> Online - 15 dias
+                            </span>
+                        )}
+                        {isHairStore && (
+                            <span className="absolute top-2 left-2 bg-purple-500 text-white px-2 py-1 rounded text-xs font-bold shadow-lg z-10 flex items-center gap-1">
+                                <ShoppingBag size={12} /> Na Hora
+                            </span>
+                        )}
                         
                         {viewMode === 'admin' && (
                             <span className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold shadow-sm z-10 ${isLowStock ? 'bg-red-500 text-white' : 'bg-white/90 text-gray-700'}`}>
