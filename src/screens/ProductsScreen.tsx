@@ -314,11 +314,11 @@ export const ProductsScreen: React.FC = () => {
                             <div className="text-xs text-rose-600 font-bold">{clientPoints} Pontos</div>
                         </div>
                         <button 
-                            onClick={() => setShowClientStoredHairModal(true)} // NEW: Button for Stored Hair
-                            className="bg-purple-100 text-purple-700 p-2 rounded-full hover:bg-purple-200 transition" 
-                            title="Meu Cabelo Guardado"
+                            onClick={() => setShowClientStoredHairModal(true)} // NEW: Button for Client Profile
+                            className="bg-blue-100 text-blue-700 p-2 rounded-full hover:bg-blue-200 transition" 
+                            title="Meu Perfil"
                         >
-                            <Box size={20}/>
+                            <User size={20}/>
                         </button>
                         <button 
                             onClick={() => setShowMyShopModal(true)}
